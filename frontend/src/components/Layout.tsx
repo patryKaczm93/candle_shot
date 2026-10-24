@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router'
+import { useCart } from '../cart/useCart'
 import { BrandSprite } from './BrandSprite'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
 export function Layout() {
-  // TODO(4.1): cart count from useCart.
-  const cartCount = 0
+  const { count: cartCount } = useCart()
   useScrollOnNavigate()
 
   return (

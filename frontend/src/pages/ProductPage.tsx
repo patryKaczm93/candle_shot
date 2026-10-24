@@ -1,7 +1,8 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Link, useParams } from 'react-router'
 import { fetchProduct, fetchShipping, type Product, type ProductDetail, type ShippingInfo } from '../api'
 import { Badge } from '../components/Badge'
+import { useCart } from '../cart/useCart'
 import { Button } from '../components/Button'
 import { cardColour, isSoldOut } from '../catalog'
 import { formatPrice } from '../format'
@@ -72,8 +73,20 @@ function ProductView({ product }: { product: ProductDetail }) {
     if (next) setQty((current) => clampQty(current, next.availability))
   }
 
+  const { add } = useCart()
+  const [added, setAdded] = useState(false)
+
+  // "Dodano" confirmation on the button, as in the mockup.
+  useEffect(() => {
+    if (!added) return
+    const timer = setTimeout(() => setAdded(false), 1800)
+    return () => clearTimeout(timer)
+  }, [added])
+
   const addToCart = () => {
-    // TODO(4.1): add { variantId, qty } to the cart.
+    if (!variant || !canAdd(availability)) return
+    add(variant.id, qty, max)
+    setAdded(true)
   }
 
   return (
@@ -186,7 +199,13 @@ function ProductView({ product }: { product: ProductDetail }) {
                       +
                     </button>
                   </div>
-                  <AddButton className={styles.addDesktop} qty={qty} disabled={!canAdd(availability)} onClick={addToCart} />
+                  <AddButton
+                    className={styles.addDesktop}
+                    qty={qty}
+                    added={added}
+                    disabled={!canAdd(availability)}
+                    onClick={addToCart}
+                  />
                 </div>
                 {qty >= MAX_QTY && (
                   <span className={styles.hint}>
@@ -256,7 +275,7 @@ function ProductView({ product }: { product: ProductDetail }) {
             <span>{qtyLabel(qty)}</span>
             <span className="disp">{formatPrice(product.price_grosze)}</span>
           </span>
-          <AddButton qty={qty} disabled={!canAdd(availability)} onClick={addToCart} />
+          <AddButton qty={qty} added={added} disabled={!canAdd(availability)} onClick={addToCart} />
         </div>
       )}
 
@@ -265,12 +284,21 @@ function ProductView({ product }: { product: ProductDetail }) {
   )
 }
 
-type AddButtonProps = { qty: number; disabled: boolean; onClick: () => void; className?: string }
+type AddButtonProps = { qty: number; added: boolean; disabled: boolean; onClick: () => void; className?: string }
 
-function AddButton({ qty, disabled, onClick, className }: AddButtonProps) {
+function AddButton({ qty, added, disabled, onClick, className }: AddButtonProps) {
   return (
     <Button className={`${styles.add} ${className ?? ''}`} disabled={disabled} onClick={onClick}>
-      {addLabel(qty)}
+      {added ? (
+        <>
+          <svg className={styles.check} viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12l5 5 9-10" />
+          </svg>
+          Dodano
+        </>
+      ) : (
+        addLabel(qty)
+      )}
     </Button>
   )
 }

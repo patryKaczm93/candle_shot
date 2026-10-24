@@ -9,11 +9,14 @@ import '@fontsource/nunito/800.css'
 import './styles/tokens.css'
 import './styles/global.css'
 import App from './App.tsx'
+import { CartProvider } from './cart/CartContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <CartProvider>
+        <App />
+      </CartProvider>
     </BrowserRouter>
   </StrictMode>,
 )

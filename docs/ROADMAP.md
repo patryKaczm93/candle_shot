@@ -29,7 +29,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 4 — Koszyk
 
-- [ ] **4.1 Stan koszyka.** Hook `useCart` z zapisem w `localStorage`. Gotowe, gdy: koszyk przetrwa odświeżenie strony.
+- [x] **4.1 Stan koszyka.** Hook `useCart` z zapisem w `localStorage`. Gotowe, gdy: koszyk przetrwa odświeżenie strony.
 - [ ] **4.2 Szuflada koszyka** z makiety: zmiana ilości, usuwanie, pasek darmowej dostawy, pusty koszyk. Gotowe, gdy: długie nazwy i 10 sztuk wyglądają dobrze.
 
 ## Faza 5 — Checkout ze Stripe (lokalnie)
