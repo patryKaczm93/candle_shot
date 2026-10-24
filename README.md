@@ -32,7 +32,14 @@ npm run dev                                   # sklep na :5173
 stripe listen --forward-to localhost:8000/api/webhooks/stripe
 ```
 
-(Polecenia backendu i frontendu zaczną działać po historyjkach 0.2 i 0.3.)
+(Polecenia frontendu zaczną działać po historyjce 0.3.)
+
+### Baza lokalna
+
+- Przed `docker compose up` uruchom Docker Desktop.
+- `docker compose ps` pokazuje `healthy`, gdy baza przyjmuje połączenia.
+- Kontener ma dwie bazy: `pachnie` (dev) i `pachnie_test` (pytest). Bazę testową tworzy `docker/init-test-db.sql`, ale tylko przy pierwszym utworzeniu wolumenu.
+- Reset bazy od zera (kasuje dane): `docker compose down -v && docker compose up -d db`.
 
 ## Praca z Claude Code
 

@@ -4,8 +4,8 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 0 — Fundamenty
 
-- [ ] **0.1 Repozytorium.** Struktura `backend/` + `frontend/`, `docker-compose.yml` z PostgreSQL, `README.md` z poleceniami. Gotowe, gdy: `docker compose up -d db` startuje bazę, `.gitignore` obejmuje `.env`.
-- [ ] **0.2 Szkielet backendu.** uv + FastAPI + `pydantic-settings` + `GET /api/health` (z testem połączenia z bazą). Gotowe, gdy: `uv run uvicorn app.main:app` zwraca `{"status":"ok"}`, a ustawienia czytane są z `.env`.
+- [x] **0.1 Repozytorium.** Struktura `backend/` + `frontend/`, `docker-compose.yml` z PostgreSQL, `README.md` z poleceniami. Gotowe, gdy: `docker compose up -d db` startuje bazę, `.gitignore` obejmuje `.env`.
+- [x] **0.2 Szkielet backendu.** uv + FastAPI + `pydantic-settings` + `GET /api/health` (z testem połączenia z bazą). Gotowe, gdy: `uv run uvicorn app.main:app` zwraca `{"status":"ok"}`, a ustawienia czytane są z `.env`.
 - [ ] **0.3 Szkielet frontendu i fundamenty designu.** Vite + React + TS + React Router; podpięte `src/styles/tokens.css` i fonty Fraunces + Nunito; komponenty bazowe z `docs/design/DESIGN.md`: komponent `<Logo>` (znak z `logo-mark.svg` + logotyp, jak w makiecie), favicon, nagłówek, stopka, przycisk główny i drugorzędny, przycisk ikony z licznikiem, odznaka. Gotowe, gdy: strona `/design` pokazuje te elementy i wygląda jak nagłówek, stopka i przyciski ze zrzutów.
 - [ ] **0.4 Konto Stripe w trybie testowym** + Stripe CLI. Gotowe, gdy: `stripe listen` działa, a w panelu włączone są BLIK, Przelewy24 i karta.
 
