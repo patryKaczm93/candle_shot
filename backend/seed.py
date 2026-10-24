@@ -16,7 +16,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
-from app.models import Product, Variant
+from app.models import Product, Setting, Variant
+from app.services.shipping import COURIER_KEY, FREE_THRESHOLD_KEY, LOCKER_KEY
 
 # Plaster colours from the Produkt mockup.
 PLASTER_COLOURS: list[tuple[str, str]] = [
@@ -93,10 +94,21 @@ SEED_PRODUCTS: list[SeedProduct] = [
 
 CATEGORY_CANDLES = "swieczki"
 
+# Shipping prices agreed with the owner for development; adjustable in the admin panel (7.1).
+SEED_SETTINGS: dict[str, str] = {
+    LOCKER_KEY: "1400",  # Paczkomat InPost: 14,00 zł
+    COURIER_KEY: "1800",  # Kurier: 18,00 zł
+    FREE_THRESHOLD_KEY: "10000",  # darmowa dostawa od 100,00 zł
+}
+
 
 def seed(session: Session) -> tuple[int, int]:
-    """Insert missing seed products and colours. Returns (products_added, variants_added)."""
+    """Insert missing products, colours and settings. Returns (products_added, variants_added)."""
     products_added = variants_added = 0
+
+    for key, value in SEED_SETTINGS.items():
+        if session.get(Setting, key) is None:
+            session.add(Setting(key=key, value=value))
 
     for sort_order, data in enumerate(SEED_PRODUCTS, start=1):
         product = session.scalar(select(Product).where(Product.slug == data.slug))

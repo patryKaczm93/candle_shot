@@ -1,0 +1,1 @@
+- [Int parsing of money settings](pattern_int_parsing.md) — no upper bound on parsed grosze; huge digits give ValueError/500

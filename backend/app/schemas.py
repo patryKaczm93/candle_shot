@@ -27,3 +27,14 @@ class ProductListItem(BaseModel):
 
 class ProductDetail(ProductListItem):
     description: str
+
+
+class ShippingMethodOut(BaseModel):
+    id: Literal["locker", "courier"]
+    name: str
+    price_grosze: int
+
+
+class ShippingOut(BaseModel):
+    methods: list[ShippingMethodOut]
+    free_shipping_threshold_grosze: int

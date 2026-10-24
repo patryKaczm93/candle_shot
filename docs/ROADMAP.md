@@ -19,7 +19,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 - [x] **2.1 Lista produktów.** `GET /api/products?category=` z sortowaniem jak w makiecie. Gotowe, gdy: test zwraca tylko aktywne produkty.
 - [x] **2.2 Karta produktu.** `GET /api/products/{slug}` z wariantami i stanem per kolor. Gotowe, gdy: nieistniejący slug zwraca 404.
-- [ ] **2.3 Ustawienia dostawy.** `GET /api/shipping` (ceny Paczkomatu i kuriera, próg darmowej dostawy). Gotowe, gdy: frontend może z tego policzyć pasek darmowej dostawy.
+- [x] **2.3 Ustawienia dostawy.** `GET /api/shipping` (ceny Paczkomatu i kuriera, próg darmowej dostawy). Gotowe, gdy: frontend może z tego policzyć pasek darmowej dostawy.
 
 ## Faza 3 — Frontend katalogu
 
@@ -88,3 +88,4 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 6.x: webhook i e-maile biorą sesję z `app.db.SessionLocal` (w testach podmieniona na bazę testową), nigdy z własnego silnika.
 - Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.
 - Do 3.1: filtr „Ostatnie sztuki” z makiety Sklep to raczej stan niż kategoria — np. produkty z `availability = "last"` w którymś wariancie, liczone po stronie API (`?only=last`), albo zwykła kategoria ustawiana w panelu. Zdecydować przy 3.1.
+- Do 5.1 (z przeglądu 2.3): `shipping_cost_grosze` dostaje `subtotal` policzony z cen z bazy (wiersze z `FOR UPDATE`); `method` w schemacie requestu jako `Literal["locker", "courier"]` (422, nie 500); ustawienia czytane raz, w tej samej transakcji co zamówienie; `ShippingSettingsError` → 503 i rollback bez sesji Stripe; dostawa jako osobna pozycja w `line_items`, pomijana przy koszcie 0.
