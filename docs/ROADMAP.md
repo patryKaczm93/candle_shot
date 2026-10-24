@@ -17,7 +17,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 2 — API katalogu
 
-- [ ] **2.1 Lista produktów.** `GET /api/products?category=` z sortowaniem jak w makiecie. Gotowe, gdy: test zwraca tylko aktywne produkty.
+- [x] **2.1 Lista produktów.** `GET /api/products?category=` z sortowaniem jak w makiecie. Gotowe, gdy: test zwraca tylko aktywne produkty.
 - [ ] **2.2 Karta produktu.** `GET /api/products/{slug}` z wariantami i stanem per kolor. Gotowe, gdy: nieistniejący slug zwraca 404.
 - [ ] **2.3 Ustawienia dostawy.** `GET /api/shipping` (ceny Paczkomatu i kuriera, próg darmowej dostawy). Gotowe, gdy: frontend może z tego policzyć pasek darmowej dostawy.
 
@@ -87,3 +87,4 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 5.1/9.1: test „dwóch kupujących ostatnią sztukę” i `SELECT ... FOR UPDATE` wymaga osobnego fixture'a z prawdziwym commitem na dwóch połączeniach (np. `committed_db` + `TRUNCATE ... RESTART IDENTITY CASCADE`); obecny `db` (jedna transakcja z rollbackiem) tego nie udowodni.
 - Do 6.x: webhook i e-maile biorą sesję z `app.db.SessionLocal` (w testach podmieniona na bazę testową), nigdy z własnego silnika.
 - Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.
+- Do 3.1: filtr „Ostatnie sztuki” z makiety Sklep to raczej stan niż kategoria — np. produkty z `availability = "last"` w którymś wariancie, liczone po stronie API (`?only=last`), albo zwykła kategoria ustawiana w panelu. Zdecydować przy 3.1.
