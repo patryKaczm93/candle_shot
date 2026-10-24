@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: pachnie
+      POSTGRES_PASSWORD: pachnie
+      POSTGRES_DB: pachnie
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    restart: unless-stopped
+
+volumes:
+  pgdata:

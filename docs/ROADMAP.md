@@ -1,0 +1,76 @@
+# Roadmapa — Pachnie miło
+
+Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code. Odhaczamy `- [x]` po spełnieniu „Gotowe, gdy” i przejściu testów.
+
+## Faza 0 — Fundamenty
+
+- [ ] **0.1 Repozytorium.** Struktura `backend/` + `frontend/`, `docker-compose.yml` z PostgreSQL, `README.md` z poleceniami. Gotowe, gdy: `docker compose up -d db` startuje bazę, `.gitignore` obejmuje `.env`.
+- [ ] **0.2 Szkielet backendu.** uv + FastAPI + `pydantic-settings` + `GET /api/health` (z testem połączenia z bazą). Gotowe, gdy: `uv run uvicorn app.main:app` zwraca `{"status":"ok"}`, a ustawienia czytane są z `.env`.
+- [ ] **0.3 Szkielet frontendu i fundamenty designu.** Vite + React + TS + React Router; podpięte `src/styles/tokens.css` i fonty Fraunces + Nunito; komponenty bazowe z `docs/design/DESIGN.md`: komponent `<Logo>` (znak z `logo-mark.svg` + logotyp, jak w makiecie), favicon, nagłówek, stopka, przycisk główny i drugorzędny, przycisk ikony z licznikiem, odznaka. Gotowe, gdy: strona `/design` pokazuje te elementy i wygląda jak nagłówek, stopka i przyciski ze zrzutów.
+- [ ] **0.4 Konto Stripe w trybie testowym** + Stripe CLI. Gotowe, gdy: `stripe listen` działa, a w panelu włączone są BLIK, Przelewy24 i karta.
+
+## Faza 1 — Baza danych
+
+- [ ] **1.1 Modele i migracja.** Tabele z `docs/ARCHITECTURE.md` w SQLAlchemy 2.0, pierwsza migracja Alembic. Gotowe, gdy: `uv run alembic upgrade head` tworzy pustą bazę.
+- [ ] **1.2 Dane startowe.** `seed.py` z 4 produktami i 4 kolorami gipsu z makiety. Gotowe, gdy: po seedzie w bazie są produkty z wariantami i stanami.
+- [ ] **1.3 Testy modeli.** pytest z testową bazą PostgreSQL w Dockerze. Gotowe, gdy: test liczenia sumy zamówienia w groszach przechodzi.
+
+## Faza 2 — API katalogu
+
+- [ ] **2.1 Lista produktów.** `GET /api/products?category=` z sortowaniem jak w makiecie. Gotowe, gdy: test zwraca tylko aktywne produkty.
+- [ ] **2.2 Karta produktu.** `GET /api/products/{slug}` z wariantami i stanem per kolor. Gotowe, gdy: nieistniejący slug zwraca 404.
+- [ ] **2.3 Ustawienia dostawy.** `GET /api/shipping` (ceny Paczkomatu i kuriera, próg darmowej dostawy). Gotowe, gdy: frontend może z tego policzyć pasek darmowej dostawy.
+
+## Faza 3 — Frontend katalogu
+
+- [ ] **3.1 Sklep.** Ekran „Sklep” z makiety na danych z API, filtr kategorii. Gotowe, gdy: działa na 390 px i na komputerze.
+- [ ] **3.2 Karta produktu.** Wybór koloru gipsu, licznik 1–10, stany „Wyprzedana” i „Ostatnia sztuka”. Gotowe, gdy: przy `stock = 0` przycisk „Dodaj” jest nieaktywny.
+- [ ] **3.3 Strona główna** i strony prawne (regulamin, polityka prywatności, dostawa i zwroty). Gotowe, gdy: linki w stopce działają.
+
+## Faza 4 — Koszyk
+
+- [ ] **4.1 Stan koszyka.** Hook `useCart` z zapisem w `localStorage`. Gotowe, gdy: koszyk przetrwa odświeżenie strony.
+- [ ] **4.2 Szuflada koszyka** z makiety: zmiana ilości, usuwanie, pasek darmowej dostawy, pusty koszyk. Gotowe, gdy: długie nazwy i 10 sztuk wyglądają dobrze.
+
+## Faza 5 — Checkout ze Stripe (lokalnie)
+
+- [ ] **5.1 `POST /api/checkout`.** Walidacja, ceny z bazy, rezerwacja stanu, zapis `pending`, Checkout Session. Gotowe, gdy: test z podstawionym klientem Stripe sprawdza, że cena z requestu jest ignorowana.
+- [ ] **5.2 Formularz zamówienia.** Kontakt, Paczkomat (InPost Geowidget) albo adres kuriera, NIP, zgoda. Gotowe, gdy: błędy walidacji wyświetlają się przy polach.
+- [ ] **5.3 Przekierowanie i powrót.** Redirect na Stripe, strony `/dziekujemy` i `/zamowienie/anulowane`. Gotowe, gdy: płatność kartą `4242 4242 4242 4242` kończy się na stronie podziękowania.
+
+## Faza 6 — Webhooki i cykl życia zamówienia
+
+- [ ] **6.1 Endpoint webhooka** z weryfikacją podpisu i tabelą `stripe_events`. Gotowe, gdy: `stripe trigger checkout.session.completed` zmienia status, a to samo zdarzenie drugi raz nic nie robi.
+- [ ] **6.2 Wygasanie i nieudane płatności** ze zwrotem stanu. Gotowe, gdy: test pokazuje powrót stanu po wygaśnięciu sesji.
+- [ ] **6.3 E-maile** dla klienta i dla sprzedawcy (Resend lub SMTP). Gotowe, gdy: po testowej płatności przychodzą oba.
+- [ ] **6.4 Status na stronie podziękowania.** `GET /api/orders/by-session/{id}` + odpytywanie co 2 s. Gotowe, gdy: strona pokazuje numer PM-XXXX.
+
+## Faza 7 — Panel administracyjny
+
+- [ ] **7.1 SQLAdmin za hasłem** pod `/admin`: produkty, warianty, stany, ustawienia. Gotowe, gdy: zmiana stanu w panelu jest od razu widoczna w sklepie.
+- [ ] **7.2 Obsługa zamówień.** Lista opłaconych, oznaczenie „wysłane” z numerem przesyłki i e-mailem do klienta. Gotowe, gdy: wysłane zamówienie znika z listy „do spakowania”.
+
+## Faza 8 — Wdrożenie
+
+- [ ] **8.1 Domena i DNS w Cloudflare.** Gotowe, gdy: domena wskazuje na Pages, a `api.` (CNAME) na Railway.
+- [ ] **8.2 Frontend na Cloudflare Pages** z buildem z `main` i `VITE_API_URL`. Gotowe, gdy: push wdraża stronę w ok. 1 minutę.
+- [ ] **8.3 Projekt na Railway:** usługa API (root `backend/`), PostgreSQL, zmienne środowiskowe, usypianie wyłączone, limit wydatków. Gotowe, gdy: `https://api.twojadomena.pl/api/health` zwraca ok.
+- [ ] **8.4 Migracje przy wdrożeniu:** `alembic upgrade head` jako pre-deploy. Gotowe, gdy: nowa migracja wchodzi sama po pushu.
+- [ ] **8.5 Kopie i monitoring.** Backups na Railway, GitHub Actions z `pg_dump` do R2, UptimeRobot. Gotowe, gdy: baza odtworzona z kopii w lokalnym Dockerze.
+
+## Faza 9 — Testy płatności i start
+
+- [ ] **9.1 Scenariusze testowe** (`/stripe-test`): karta poprawna, 3D Secure, odrzucona, BLIK, Przelewy24, porzucona sesja, powtórzony webhook, dwóch kupujących ostatnią sztukę. Gotowe, gdy: każdy kończy się właściwym statusem i stanem.
+- [ ] **9.2 Klucze live**, webhook live, jedno prawdziwe zamówienie i zwrot. Gotowe, gdy: status zmienia się na `refunded`.
+- [ ] **9.3 Lista startowa:** regulamin, polityka prywatności, dane sprzedawcy, etykiety CLP, kontakt w sprawie zwrotów.
+
+## Świadomie odłożone
+
+- „Powiadom mnie, gdy wróci” — na start zwykły e-mail do sprzedawcy.
+- Etykiety InPost przez API ShipX — na start ręcznie w panelu InPost.
+- Kody rabatowe — `allow_promotion_codes` w Checkout, gdy będą potrzebne.
+- SSR/SEO, kolejki, Redis, Kubernetes.
+
+## Pomysły na później
+
+(Claude dopisuje tu pomysły spoza zakresu bieżącej historyjki.)

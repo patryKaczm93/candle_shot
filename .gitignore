@@ -1,0 +1,26 @@
+# Sekrety
+.env
+.env.local
+.env.production
+!.env.example
+
+# Claude Code — prywatne ustawienia
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agent-memory-local/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Edytor i system
+.DS_Store
+Thumbs.db
+.idea/

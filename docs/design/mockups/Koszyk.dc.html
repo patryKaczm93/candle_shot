@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Koszyk, Pachnie miło</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,700..900,100,1&amp;family=Nunito:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0;background:#FFFDF7}
+*{box-sizing:border-box}
+a{color:#63391C}a:hover{color:#4A2A12}
+.pm{--eo:cubic-bezier(0.22,1,0.36,1);--ex:cubic-bezier(0.16,1,0.3,1);--drawer:cubic-bezier(0.32,0.72,0,1)}
+.disp{font-family:Fraunces,Georgia,serif;font-variation-settings:"SOFT" 100,"WONK" 1;font-weight:900;letter-spacing:-0.02em}
+.wm{font-family:Fraunces,Georgia,serif;font-weight:900;font-variation-settings:"SOFT" 100,"WONK" 1;line-height:0.92;letter-spacing:-0.01em;color:#E29D62;-webkit-text-stroke:0.146em #63391C;paint-order:stroke fill;white-space:nowrap}
+.lflame{transform-box:fill-box;transform-origin:50% 100%}
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.home:hover .lflame{animation:lflick 1.1s ease-in-out infinite}}
+@keyframes lflick{0%,100%{transform:none}35%{transform:scale(0.93,1.08) skewX(-3deg)}70%{transform:scale(1.04,0.96) skewX(2deg)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;border-radius:999px;border:2px solid #63391C;font:800 16px/1 Nunito,sans-serif;text-decoration:none;cursor:pointer;transition:transform 140ms var(--eo),box-shadow 140ms var(--eo),background-color 180ms ease}
+.btn-main{background:#E29D62;color:#4A2A12;box-shadow:4px 4px 0 #63391C}
+.btn:active{transform:translate(3px,3px) scale(0.97);box-shadow:0 0 0 #63391C}
+.icon-btn{width:46px;height:46px;border-radius:50%;border:2px solid #63391C;background:#F7EAD0;color:#63391C;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform 140ms var(--eo),background-color 180ms ease}
+.icon-btn:active{transform:scale(0.92)}
+.step{width:38px;height:38px;border:none;background:transparent;font:800 18px Nunito,sans-serif;color:#63391C;cursor:pointer;border-radius:50%;transition:background-color 160ms ease,transform 120ms var(--eo)}
+.step:active{transform:scale(0.88)}
+.step[disabled]{opacity:0.35;cursor:not-allowed}
+.link-btn{background:none;border:none;padding:8px 0;font:700 15px Nunito,sans-serif;color:#63391C;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.bar{height:100%;width:100%;transform-origin:left;transition:transform 520ms var(--ex),background-color 300ms ease}
+.btn .arr{display:inline-block;transition:transform 240ms var(--eo)}
+@media (hover:hover) and (pointer:fine){
+.btn-main:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #63391C}
+.btn:hover .arr{transform:translateX(4px)}
+.icon-btn:hover{background:#EAD3B2}
+.step:hover{background:#EAD3B2}
+.link-btn:hover{color:#9E3420}
+}
+:focus-visible{outline:3px solid #63391C;outline-offset:3px}
+@media (prefers-reduced-motion:no-preference){
+.drawer{animation:slide 460ms var(--drawer) both}
+.dim{animation:fade 320ms ease both}
+.item{animation:itemIn 420ms var(--ex) both;animation-delay:calc(260ms + var(--i) * 70ms)}
+.item.out{animation:itemOut 200ms cubic-bezier(0.55,0.055,0.675,0.19) both}
+.roll{display:inline-block;animation:var(--an) 260ms var(--eo) both}
+.swap{animation:var(--an) 320ms var(--eo) both}
+.foot-in{animation:itemIn 420ms var(--ex) 380ms both}
+}
+@keyframes slide{from{transform:translateX(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes itemIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes itemOut{to{opacity:0;transform:translateX(24px) scale(0.98)}}
+@keyframes rollA{from{opacity:0;transform:translateY(-60%)}to{opacity:1;transform:none}}
+@keyframes rollB{from{opacity:0;transform:translateY(-60%)}to{opacity:1;transform:none}}
+@keyframes swapA{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
+@keyframes swapB{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px}
+.ghostgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+@media (max-width:760px){.wrap{padding:0 16px}.ghostgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){.bar,.btn,.icon-btn,.step{transition:background-color 180ms ease}}
+</style>
+</helmet>
+<div class="pm" style="position: relative; height: 100svh; min-height: 900px; overflow: hidden; background: #FFFDF7; color: #63391C; font-family: Nunito, system-ui, sans-serif; font-size: 17px; line-height: 1.5">
+<svg width="0" height="0" style="position: absolute" aria-hidden="true"><defs><path id="pm-rim" d="M174.0 72.0 L177.2 73.7 L179.9 75.5 L181.9 77.4 L183.0 79.4 L183.2 81.4 L182.3 83.2 L180.4 85.0 L177.6 86.5 L173.9 87.8 L169.5 88.9 L164.8 89.7 L159.9 90.3 L155.0 90.7 L150.3 91.0 L146.0 91.3 L142.2 91.7 L138.9 92.2 L136.1 92.9 L133.7 93.8 L131.6 95.0 L129.6 96.4 L127.5 98.0 L125.4 99.7 L122.9 101.6 L120.0 103.3 L116.7 105.0 L113.0 106.4 L108.9 107.5 L104.5 108.1 L100.0 108.4 L95.5 108.1 L91.1 107.5 L87.0 106.4 L83.3 105.0 L80.0 103.3 L77.1 101.6 L74.6 99.7 L72.5 98.0 L70.4 96.4 L68.4 95.0 L66.3 93.8 L63.9 92.9 L61.1 92.2 L57.8 91.7 L54.0 91.3 L49.7 91.0 L45.0 90.7 L40.1 90.3 L35.2 89.7 L30.5 88.9 L26.1 87.8 L22.4 86.5 L19.6 85.0 L17.7 83.2 L16.8 81.4 L17.0 79.4 L18.1 77.4 L20.1 75.5 L22.8 73.7 L26.0 72.0 L29.4 70.4 L32.7 69.0 L35.7 67.7 L38.3 66.5 L40.3 65.3 L41.6 64.0 L42.3 62.7 L42.4 61.2 L42.0 59.6 L41.4 57.8 L40.7 55.8 L40.1 53.7 L40.0 51.6 L40.3 49.4 L41.4 47.4 L43.2 45.5 L45.8 43.9 L49.1 42.6 L53.1 41.7 L57.6 41.1 L62.4 41.0 L67.3 41.2 L72.3 41.7 L77.1 42.4 L81.7 43.3 L85.9 44.2 L89.8 45.0 L93.4 45.6 L96.8 46.1 L100.0 46.2 L103.2 46.1 L106.6 45.6 L110.2 45.0 L114.1 44.2 L118.3 43.3 L122.9 42.4 L127.7 41.7 L132.7 41.2 L137.6 41.0 L142.4 41.1 L146.9 41.7 L150.9 42.6 L154.2 43.9 L156.8 45.5 L158.6 47.4 L159.7 49.4 L160.0 51.6 L159.9 53.7 L159.3 55.8 L158.6 57.8 L158.0 59.6 L157.6 61.2 L157.7 62.7 L158.4 64.0 L159.7 65.3 L161.7 66.5 L164.3 67.7 L167.3 69.0 L170.6 70.4 Z"></path><path id="pm-body" d="M183.2 81.4 L179.9 147.0 L179.0 148.8 L177.2 150.4 L174.5 151.9 L170.9 153.2 L166.8 154.2 L162.2 155.0 L157.5 155.5 L152.8 156.0 L148.3 156.3 L144.2 156.6 L140.5 156.9 L137.4 157.4 L134.7 158.0 L132.3 158.9 L130.3 160.0 L128.4 161.4 L126.4 162.9 L124.3 164.6 L122.0 166.4 L119.2 168.1 L116.0 169.7 L112.4 171.0 L108.5 172.0 L104.3 172.7 L100.0 172.9 L95.7 172.7 L91.5 172.0 L87.6 171.0 L84.0 169.7 L80.8 168.1 L78.0 166.4 L75.7 164.6 L73.6 162.9 L71.6 161.4 L69.7 160.0 L67.7 158.9 L65.3 158.0 L62.6 157.4 L59.5 156.9 L55.8 156.6 L51.7 156.3 L47.2 156.0 L42.5 155.5 L37.8 155.0 L33.2 154.2 L29.1 153.2 L25.5 151.9 L22.8 150.4 L21.0 148.8 L16.8 81.4 Z"></path><path id="pm-flame" d="M100 20 C114 34 115 48 100 60 C85 48 86 34 100 20Z"></path><g id="pm-pot"><use href="#pm-body" style="fill: var(--body, #F7EAD0); stroke: var(--ink, #63391C)" stroke-width="5.5" stroke-linejoin="round"></use><use href="#pm-rim" style="fill: var(--rim, var(--body, #F7EAD0)); stroke: var(--ink, #63391C)" stroke-width="5.5" stroke-linejoin="round"></use><ellipse cx="100" cy="72" rx="44" ry="18.6" style="fill: var(--wax, #FFFFFF); stroke: var(--ink, #63391C)" stroke-width="5.5"></ellipse><line x1="100" y1="72" x2="100" y2="59" style="stroke: var(--ink, #63391C)" stroke-width="5.5" stroke-linecap="round"></line></g><g id="pm-pot-b"><use href="#pm-body" style="fill: var(--ink, #63391C); stroke: var(--ink, #63391C)" stroke-width="15" stroke-linejoin="round"></use><use href="#pm-rim" style="fill: var(--ink, #63391C); stroke: var(--ink, #63391C)" stroke-width="15" stroke-linejoin="round"></use><use href="#pm-body" style="fill: var(--body, #F7EAD0)"></use><use href="#pm-rim" style="fill: var(--rim, var(--body, #F7EAD0)); stroke: var(--ink, #63391C)" stroke-width="9" stroke-linejoin="round"></use><ellipse cx="100" cy="72" rx="42" ry="17" style="fill: var(--wax, #FFFFFF); stroke: var(--ink, #63391C)" stroke-width="7"></ellipse><line x1="100" y1="72" x2="100" y2="59" style="stroke: var(--ink, #63391C)" stroke-width="7" stroke-linecap="round"></line></g><symbol id="pm-mark" viewBox="0 12 200 168"><use href="#pm-pot"></use><use href="#pm-flame" style="fill: var(--flame, #E29D62); stroke: var(--ink, #63391C)" stroke-width="5.5" stroke-linejoin="round"></use></symbol><symbol id="pm-mark-b" viewBox="0 6 200 174"><use href="#pm-pot-b"></use><use href="#pm-flame" style="fill: var(--flame, #E29D62); stroke: var(--ink, #63391C)" stroke-width="7" stroke-linejoin="round" transform="translate(-14 -14) scale(1.14)"></use></symbol></defs></svg>
+
+<div aria-hidden="true">
+<div style="background: #63391C; height: 42px"></div>
+<div style="border-bottom: 2px solid #63391C; height: 90px"></div>
+<div class="wrap" style="padding-top: 64px">
+<div style="width: 460px; max-width: 80%; height: 64px; border-radius: 16px; background: #F7EAD0; margin-bottom: 44px"></div>
+<div class="ghostgrid">
+<div style="height: 400px; border-radius: 20px; background: #F7EAD0"></div>
+<div style="height: 400px; border-radius: 20px; background: #F7EAD0"></div>
+<div style="height: 400px; border-radius: 20px; background: #F7EAD0"></div>
+</div>
+</div>
+</div>
+
+<a class="dim" href="Sklep.dc.html" aria-label="Zamknij koszyk i wróć do sklepu" style="position: absolute; inset: 0; background: rgba(74, 42, 18, 0.5)"></a>
+
+<aside class="drawer" role="dialog" aria-label="Koszyk" style="position: absolute; top: 0; right: 0; bottom: 0; width: 500px; max-width: 100%; background: #FFFDF7; border-left: 2px solid #63391C; display: flex; flex-direction: column">
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 24px; border-bottom: 2px solid #63391C">
+<h2 class="disp" style="margin: 0; font-size: 32px; line-height: 1">Twój koszyk <span style="font-size: 20px; color: #7D5232; font-variant-numeric: tabular-nums; white-space: nowrap">(<span class="roll" style="--an: {{cAnim}}">{{countLabel}}</span>)</span></h2>
+<a class="icon-btn" href="Sklep.dc.html" aria-label="Zamknij koszyk">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</a>
+</div>
+
+<sc-if value="{{hasItems}}" hint-placeholder-val="{{true}}">
+<div style="padding: 18px 24px; background: #F7EAD0">
+<p class="swap" style="--an: {{sAnim}}; margin: 0 0 10px; font-size: 15px; font-weight: 800">{{shipMsg}}</p>
+<div style="height: 14px; border-radius: 999px; border: 2px solid #63391C; background: #FFFDF7; overflow: hidden">
+<div class="bar" style="{{barStyle}}"></div>
+</div>
+</div>
+
+<div style="flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 12px 24px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="2">
+<div class="{{it.cls}}" style="--i: {{it.i}}; display: flex; gap: 16px; padding: 14px; background: #F7EAD0; border-radius: 18px">
+<span style="flex: 0 0 88px; height: 88px; background: #EAD3B2; border: 2px solid #63391C; border-radius: 14px; display: flex; align-items: center; justify-content: center">
+<svg width="66" viewBox="0 6 200 192" aria-hidden="true"><use href="#pm-pot-b" style="--body: {{it.gips}}; --rim: {{it.gips}}"></use><path d="M100 20 C114 34 115 48 100 60 C85 48 86 34 100 20Z" fill="#E29D62" stroke="#63391C" stroke-width="7" stroke-linejoin="round"></path></svg>
+</span>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+<span class="disp" style="font-size: 19px; line-height: 1.2; overflow-wrap: anywhere; min-width: 0">{{it.name}}</span>
+<span style="font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; flex-shrink: 0">{{it.price}}</span>
+</div>
+<span style="font-size: 15px; color: #7D5232">Gips: {{it.variant}}</span>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 12px">
+<div role="group" aria-label="Ilość" style="display: flex; align-items: center; border: 2px solid #63391C; border-radius: 999px; background: #FFFDF7; flex-shrink: 0">
+<button class="step" type="button" onClick="{{it.dec}}" disabled="{{it.atMin}}" aria-label="Zmniejsz ilość">−</button>
+<span style="min-width: 30px; text-align: center; font-weight: 800; overflow: hidden; font-variant-numeric: tabular-nums" aria-live="polite"><span class="roll" style="--an: {{it.qAnim}}">{{it.qty}}</span></span>
+<button class="step" type="button" onClick="{{it.inc}}" disabled="{{it.atMax}}" aria-label="Zwiększ ilość">+</button>
+</div>
+<button class="link-btn" type="button" onClick="{{it.remove}}">Usuń</button>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div class="foot-in" style="border-top: 2px solid #63391C; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; gap: 12px"><span>Suma częściowa</span><span style="font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap">{{subtotal}}</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; color: #7D5232"><span>Dostawa</span><span>w następnym kroku</span></div>
+<a class="btn btn-main" href="Zamowienie.dc.html" style="min-height: 58px; font-size: 17px; margin-top: 8px">Przejdź do zamówienia <span class="arr" aria-hidden="true">→</span></a>
+<a href="Sklep.dc.html" style="text-align: center; font-weight: 700; padding: 8px">Kontynuuj zakupy</a>
+</div>
+</sc-if>
+
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+<div class="item" style="--i: 0; flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 32px; text-align: center">
+<svg width="120" viewBox="0 6 200 192" aria-hidden="true"><use href="#pm-pot" style="--body: #FFFFFF; --rim: #FFFFFF"></use><path d="M100 55 C95 46 105 41 100 31" fill="none" stroke="#7D5232" stroke-width="3" stroke-linecap="round"></path></svg>
+<h3 class="disp" style="margin: 0; font-size: 30px">Tu jeszcze nic nie pachnie</h3>
+<p style="margin: 0">Twój koszyk jest pusty. Zajrzyj do sklepu, na pewno coś się znajdzie.</p>
+<a class="btn btn-main" href="Sklep.dc.html" style="margin-top: 8px">Przejdź do sklepu</a>
+<button class="link-btn" type="button" onClick="{{reset}}">Przywróć przykładowy koszyk</button>
+</div>
+</sc-if>
+
+</aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dane":{"editor":"enum","options":["Demo","Najgorszy przypadek","Pusty koszyk"],"default":"Demo","section":"Test danych"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+componentWillUnmount() { clearTimeout(this.t); }
+renderVals() {
+const mode = this.props.dane ?? 'Demo';
+const demo = [
+{ id: 'a', name: 'Wanilia i drewno sandałowe', variant: 'naturalny biały', gips: '#FFFFFF', unit: 0, q: 1 },
+{ id: 'b', name: 'Figa i bergamotka', variant: 'szałwia', gips: '#B9C2A4', unit: 0, q: 1 }
+];
+const worst = [
+{ id: 'a', name: 'Zestaw prezentowy „Wieczór przy kominku” z trzema świeczkami sojowymi i drewnianymi zapałkami', variant: 'terakota', gips: '#D9A27A', unit: 1249, q: 1 },
+{ id: 'b', name: 'Mgła', variant: 'grafit', gips: '#8C8178', unit: 9.99, q: 10 },
+{ id: 'c', name: 'Bergamotka-limonka-trawa cytrynowa', variant: 'szałwia', gips: '#B9C2A4', unit: 189, q: 1 },
+{ id: 'd', name: 'Wanilia', variant: 'naturalny biały', gips: '#FFFFFF', unit: 39, q: 2 }
+];
+const key = mode;
+const s = (this.state && this.state.key === key) ? this.state : { key };
+const base = mode === 'Najgorszy przypadek' ? worst : ((mode === 'Pusty koszyk' && !s.restored) ? [] : demo);
+const q = s.q || Object.fromEntries(base.map(b => [b.id, b.q]));
+const leaving = s.leaving || {};
+const fmt = n => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(n);
+const setQ = (id, v) => this.setState({ key, q: Object.assign({}, q, { [id]: v }), leaving, flip: (s.flip || 0) + 1 });
+const remove = id => {
+this.setState({ key, q, leaving: Object.assign({}, leaving, { [id]: true }), flip: s.flip || 0 });
+clearTimeout(this.t);
+this.t = setTimeout(() => {
+const st = this.state || {};
+this.setState({ q: Object.assign({}, st.q || q, { [id]: 0 }), leaving: Object.assign({}, st.leaving, { [id]: false }), flip: (st.flip || 0) + 1 });
+}, 200);
+};
+const live = base.filter(b => (q[b.id] || 0) > 0);
+const total = live.reduce((n, b) => n + q[b.id], 0);
+const sum = live.reduce((n, b) => n + q[b.id] * b.unit, 0);
+const priced = mode === 'Najgorszy przypadek';
+const pct = Math.min(1, 0.3 + total * 0.2);
+const flip = s.flip || 0;
+return {
+items: live.map((b, i) => ({
+i,
+cls: leaving[b.id] ? 'item out' : 'item',
+name: b.name, variant: b.variant, gips: b.gips, qty: q[b.id],
+qAnim: q[b.id] % 2 ? 'rollA' : 'rollB',
+atMin: q[b.id] <= 1,
+atMax: q[b.id] >= 10,
+price: priced ? fmt(q[b.id] * b.unit) : (q[b.id] === 1 ? 'XX zł' : q[b.id] + ' × XX zł'),
+inc: () => setQ(b.id, Math.min(q[b.id] + 1, 10)),
+dec: () => setQ(b.id, Math.max(q[b.id] - 1, 1)),
+remove: () => remove(b.id)
+})),
+countLabel: total,
+cAnim: total % 2 ? 'rollA' : 'rollB',
+subtotal: priced ? fmt(sum) : 'XX zł',
+hasItems: total > 0,
+isEmpty: total === 0,
+shipMsg: pct >= 1 ? 'Masz darmową dostawę!' : 'Brakuje [X] zł do darmowej dostawy',
+sAnim: pct >= 1 ? 'swapB' : 'swapA',
+barStyle: 'transform: scaleX(' + pct + '); background: ' + (pct >= 1 ? '#4F6B2E' : '#E29D62'),
+reset: () => this.setState({ key, restored: true, q: Object.fromEntries((base.length ? base : demo).map(b => [b.id, b.q])), leaving: {}, flip: flip + 1 })
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+/* Wygenerowane z docs/design/tokens.json (system designu „Pachnie miło”). Zmieniaj tokeny tam i w tym pliku jednocześnie. */
+:root {
+  --color-krem: #FFFDF7; /* Tło strony. Krem z palety marki (#FFFDF7). Wieczorem — głęboki brąz jak knot po zgaszeniu. */
+  --color-krem-jasny: #F7EAD0; /* Karty produktów, koszyk, pola formularzy — o ton jaśniejsze od tła, żeby się z niego wyodrębniały. */
+  --color-krem-ciemny: #EAD3B2; /* Sekcje wyróżnione, pasek ogłoszeń, tło pod zdjęciami produktów. */
+  --color-pomarancz: #E29D62; /* Kolor marki (#E29D62). Wypełnienie przycisków głównych, odznak i dużych pól. Nigdy jako kolor tekstu na kremie (za słaby kontrast 1,9:1). */
+  --color-pomarancz-gleboki: #C97C3D; /* Stan hover/aktywny przycisków pomarańczowych, ikony, ozdobniki ≥24px. */
+  --color-braz: #63391C; /* Atrament marki (#63391C). Tekst główny (8,3:1 na kremie), nagłówki, linki, obrysy 2px przycisków i kart. */
+  --color-braz-gleboki: #4A2A12; /* Tekst na pomarańczowym wypełnieniu (5,6:1) — etykiety przycisków głównych. */
+  --color-braz-miekki: #7D5232; /* Tekst pomocniczy: opisy, ceny przekreślone, podpisy pod zdjęciami (5,6:1 na kremie). */
+  --color-oliwka: #4F6B2E; /* Sukces: dodano do koszyka, zamówienie przyjęte, „dostępny”. */
+  --color-terakota: #9E3420; /* Błąd i ostrzeżenie: brak w magazynie, błąd formularza. Tylko komunikaty, nigdy dekoracja. */
+
+  --font-display: "Fraunces", "Cooper Black", Georgia, serif;
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --text-display-size: 64px; --text-display-line: 1; --text-display-weight: 900;
+  --text-h1-size: 44px; --text-h1-line: 1.05; --text-h1-weight: 900;
+  --text-h2-size: 32px; --text-h2-line: 1.1; --text-h2-weight: 800;
+  --text-h3-size: 22px; --text-h3-line: 1.2; --text-h3-weight: 800;
+  --text-body-lg-size: 18px; --text-body-lg-line: 28px; --text-body-lg-weight: 400;
+  --text-body-size: 16px; --text-body-line: 24px; --text-body-weight: 400;
+  --text-label-size: 15px; --text-label-line: 20px; --text-label-weight: 800;
+  --text-small-size: 13px; --text-small-line: 18px; --text-small-weight: 600;
+
+  --space-1: 4px; /* Odstęp ikona–tekst. */
+  --space-2: 8px; /* Odstępy w odznakach i małych elementach. */
+  --space-3: 16px; /* Padding przycisków (poziomo 24px = space-3 × 1,5), odstępy w kartach. */
+  --space-4: 24px; /* Padding kart, odstęp między kafelkami w siatce. */
+  --space-5: 48px; /* Odstęp między sekcjami na telefonie. */
+  --space-6: 96px; /* Odstęp między sekcjami na komputerze. */
+  --radius-sm: 10px; /* Pola formularzy, odznaki. */
+  --radius-md: 20px; /* Karty produktów, zdjęcia. */
+  --radius-lg: 36px; /* Duże bloki sekcji, baner główny. */
+  --radius-pill: 999px; /* Przyciski — pigułki jak płatki kwiatka z logo. */
+  --obrys: 2px; /* Grubość konturu w kolorze braz — przyciski, karty, odznaki. Nawiązuje do brązowego obrysu liter i kwiatka w logo. */
+  --cien-retro: 4px 4px 0 #63391C;
+
+  /* Ruch z makiety */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Motyw „Wieczorny” — przygotowany w systemie designu, na start nieaktywny. Włącza się atrybutem data-theme="dark" na <html>. */
+[data-theme="dark"] {
+  --color-krem: #2B1A0E;
+  --color-krem-jasny: #3A2616;
+  --color-krem-ciemny: #4A3220;
+  --color-pomarancz: #E8A56B;
+  --color-pomarancz-gleboki: #F0B47E;
+  --color-braz: #FFFDF7;
+  --color-braz-gleboki: #2B1A0E;
+  --color-braz-miekki: #C9AE8E;
+  --color-oliwka: #A9C27F;
+  --color-terakota: #F09A86;
+  --cien-retro: 4px 4px 0 #120A04;
+}
