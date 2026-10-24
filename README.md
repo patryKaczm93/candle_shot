@@ -22,6 +22,7 @@ cd backend
 cp .env.example .env                          # uzupełnij klucze testowe Stripe
 uv sync
 uv run alembic upgrade head
+uv run python seed.py                         # 4 produkty testowe z makiety
 uv run uvicorn app.main:app --reload          # API na :8000
 
 cd ../frontend

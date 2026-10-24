@@ -12,7 +12,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 1 — Baza danych
 
 - [x] **1.1 Modele i migracja.** Tabele z `docs/ARCHITECTURE.md` w SQLAlchemy 2.0, pierwsza migracja Alembic. Gotowe, gdy: `uv run alembic upgrade head` tworzy pustą bazę.
-- [ ] **1.2 Dane startowe.** `seed.py` z 4 produktami i 4 kolorami gipsu z makiety. Gotowe, gdy: po seedzie w bazie są produkty z wariantami i stanami.
+- [x] **1.2 Dane startowe.** `seed.py` z 4 produktami i 4 kolorami gipsu z makiety. Gotowe, gdy: po seedzie w bazie są produkty z wariantami i stanami.
 - [ ] **1.3 Testy modeli.** pytest z testową bazą PostgreSQL w Dockerze. Gotowe, gdy: test liczenia sumy zamówienia w groszach przechodzi.
 
 ## Faza 2 — API katalogu
