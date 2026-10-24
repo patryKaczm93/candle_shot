@@ -23,3 +23,7 @@ class ProductListItem(BaseModel):
     badge: str | None
     image: str | None
     variants: list[VariantOut]
+
+
+class ProductDetail(ProductListItem):
+    description: str

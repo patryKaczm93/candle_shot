@@ -18,7 +18,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 2 — API katalogu
 
 - [x] **2.1 Lista produktów.** `GET /api/products?category=` z sortowaniem jak w makiecie. Gotowe, gdy: test zwraca tylko aktywne produkty.
-- [ ] **2.2 Karta produktu.** `GET /api/products/{slug}` z wariantami i stanem per kolor. Gotowe, gdy: nieistniejący slug zwraca 404.
+- [x] **2.2 Karta produktu.** `GET /api/products/{slug}` z wariantami i stanem per kolor. Gotowe, gdy: nieistniejący slug zwraca 404.
 - [ ] **2.3 Ustawienia dostawy.** `GET /api/shipping` (ceny Paczkomatu i kuriera, próg darmowej dostawy). Gotowe, gdy: frontend może z tego policzyć pasek darmowej dostawy.
 
 ## Faza 3 — Frontend katalogu
