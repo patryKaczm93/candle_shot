@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { CONTACT_EMAIL } from '../shop'
 import { Logo } from './Logo'
 import styles from './Footer.module.css'
 
@@ -15,7 +16,7 @@ export function Footer() {
           <span className={styles.heading}>Sklep</span>
           <Link to="/sklep">Wszystkie świeczki</Link>
           <Link to="/sklep">Zestawy prezentowe</Link>
-          <a href="/#na-zamowienie">Na zamówienie</a>
+          <Link to="/#na-zamowienie">Na zamówienie</Link>
         </div>
 
         <div className={styles.column}>
@@ -27,12 +28,12 @@ export function Footer() {
 
         <div className={styles.column}>
           <span className={styles.heading}>Kontakt</span>
-          {/* TODO(9.3): real contact e-mail and Instagram link. */}
-          <a href="#" className={styles.email}>
-            [adres e-mail]
+          <a href={`mailto:${CONTACT_EMAIL}`} className={styles.email}>
+            {CONTACT_EMAIL}
           </a>
+          {/* TODO(9.3): real Instagram link. */}
           <a href="#">Instagram</a>
-          <a href="/#na-zamowienie">Świeczki i formy na zamówienie</a>
+          <Link to="/#na-zamowienie">Świeczki i formy na zamówienie</Link>
         </div>
       </div>
 

@@ -25,7 +25,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 - [ ] **3.1 Sklep.** Ekran „Sklep” z makiety na danych z API, filtr kategorii. Gotowe, gdy: działa na 390 px i na komputerze.
 - [ ] **3.2 Karta produktu.** Wybór koloru gipsu, licznik 1–10, stany „Wyprzedana” i „Ostatnia sztuka”. Gotowe, gdy: przy `stock = 0` przycisk „Dodaj” jest nieaktywny.
-- [ ] **3.3 Strona główna** i strony prawne (regulamin, polityka prywatności, dostawa i zwroty). Gotowe, gdy: linki w stopce działają.
+- [x] **3.3 Strona główna** i strony prawne (regulamin, polityka prywatności, dostawa i zwroty). Gotowe, gdy: linki w stopce działają.
 
 ## Faza 4 — Koszyk
 
@@ -81,3 +81,6 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 6.1: zapis do `stripe_events` i zmiana statusu w jednej transakcji (`INSERT ... ON CONFLICT DO NOTHING` + `rowcount`).
 - Do 6.2: zwrot stanu tylko gdy `UPDATE ... WHERE status='pending'` zmienił 1 wiersz, atomowo `stock = stock + qty`, pomiń pozycje z `variant_id IS NULL`. Płatność, która dojdzie po anulowaniu: log + e-mail do sprzedawcy i ręczny zwrot, bez cichego przywracania zamówienia.
 - Do 7.1: produkty wyłączamy (`is_active=false`), nie usuwamy (FK `RESTRICT`).
+- Do 3.1: sekcja „Najchętniej zapalane” na stronie głównej (4 karty produktów z `GET /api/products`) — pominięta w 3.3, bo ceny muszą pochodzić z API.
+- Newsletter „Nowe zapachy prosto do skrzynki” z makiety strony głównej — wymaga usługi mailingowej i zgody RODO; na razie pominięty.
+- Do 9.3: uzupełnić `CONTACT_EMAIL` w `frontend/src/shop.ts`, link do Instagrama, `[miasto]` i `[X] dni` na stronie głównej, treść regulaminu, polityki prywatności oraz dostawy i zwrotów.

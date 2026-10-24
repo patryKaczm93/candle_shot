@@ -10,8 +10,13 @@ type CommonProps = {
 }
 
 type ButtonProps = CommonProps &
-  ({ to: string } | ({ to?: undefined } & ButtonHTMLAttributes<HTMLButtonElement>))
+  (
+    | { to: string; href?: undefined }
+    | { href: string; to?: undefined }
+    | ({ to?: undefined; href?: undefined } & ButtonHTMLAttributes<HTMLButtonElement>)
+  )
 
+/** Pill button from the mockup. `to` = router link, `href` = plain link (anchors, mailto), otherwise <button>. */
 export function Button({ variant = 'main', arrow = false, className, children, ...rest }: ButtonProps) {
   const classes = [styles.btn, styles[variant], className].filter(Boolean).join(' ')
   const content = (
@@ -33,7 +38,15 @@ export function Button({ variant = 'main', arrow = false, className, children, .
     )
   }
 
-  const { to: _to, type = 'button', ...buttonProps } = rest
+  if (rest.href !== undefined) {
+    return (
+      <a href={rest.href} className={classes}>
+        {content}
+      </a>
+    )
+  }
+
+  const { to: _to, href: _href, type = 'button', ...buttonProps } = rest
   return (
     <button type={type} className={classes} {...buttonProps}>
       {content}

@@ -1,0 +1,86 @@
+.shadow {
+  fill: var(--color-braz);
+  opacity: 0.2;
+}
+
+.vessel {
+  transition: fill 360ms ease;
+}
+
+.halo {
+  fill: var(--color-krem);
+  opacity: 0.5;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.flame {
+  fill: var(--color-krem);
+  stroke: var(--color-braz);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .flame {
+    animation:
+      light 700ms var(--ease-expo) both,
+      flicker 2.6s ease-in-out 700ms infinite;
+  }
+
+  .halo {
+    animation:
+      glow 900ms var(--ease-expo) both,
+      breathe 3.2s ease-in-out 900ms infinite;
+  }
+}
+
+@keyframes light {
+  0% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: scale(0.95, 1.06) skewX(-2deg);
+  }
+  62% {
+    transform: scale(1.03, 0.97) skewX(1.5deg);
+  }
+}
+
+@keyframes glow {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0.5;
+    transform: none;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: none;
+  }
+  50% {
+    opacity: 0.36;
+    transform: scale(1.06);
+  }
+}

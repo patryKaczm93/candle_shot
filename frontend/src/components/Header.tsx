@@ -81,8 +81,8 @@ type NavLinkProps = {
 }
 
 function NavLink({ href, label, ...rest }: NavLinkProps) {
-  // Hash links point at sections; plain paths go through the router.
-  if (href.includes('#')) {
+  // In-page anchors (#kontakt) stay plain links; paths, also with a #section, go through the router.
+  if (href.startsWith('#')) {
     return (
       <a href={href} {...rest}>
         {label}
