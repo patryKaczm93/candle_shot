@@ -1,0 +1,46 @@
+.iconBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  border: var(--obrys) solid var(--color-braz);
+  background: var(--color-krem-jasny);
+  color: var(--color-braz);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 180ms ease;
+}
+
+.badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  font-size: 12px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .iconBtn:hover {
+    background: var(--color-krem-ciemny);
+    color: var(--color-braz);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .iconBtn {
+    transition:
+      transform 120ms var(--ease-out),
+      background-color 180ms ease;
+  }
+
+  .iconBtn:active {
+    transform: scale(0.92);
+  }
+}

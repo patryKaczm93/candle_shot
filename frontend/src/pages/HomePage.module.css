@@ -1,0 +1,21 @@
+.placeholder {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+}
+
+@media (max-width: 760px) {
+  .placeholder {
+    padding-top: var(--space-5);
+    padding-bottom: var(--space-5);
+  }
+
+  .title {
+    font-size: var(--text-h1-size);
+  }
+}

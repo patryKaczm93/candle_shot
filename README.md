@@ -32,8 +32,6 @@ npm run dev                                   # sklep na :5173
 stripe listen --forward-to localhost:8000/api/webhooks/stripe
 ```
 
-(Polecenia frontendu zaczną działać po historyjce 0.3.)
-
 ### Baza lokalna
 
 - Przed `docker compose up` uruchom Docker Desktop.

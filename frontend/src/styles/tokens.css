@@ -11,7 +11,7 @@
   --color-oliwka: #4F6B2E; /* Sukces: dodano do koszyka, zamówienie przyjęte, „dostępny”. */
   --color-terakota: #9E3420; /* Błąd i ostrzeżenie: brak w magazynie, błąd formularza. Tylko komunikaty, nigdy dekoracja. */
 
-  --font-display: "Fraunces", "Cooper Black", Georgia, serif;
+  --font-display: "Fraunces Variable", "Fraunces", "Cooper Black", Georgia, serif;
   --font-sans: "Nunito", system-ui, sans-serif;
   --text-display-size: 64px; --text-display-line: 1; --text-display-weight: 900;
   --text-h1-size: 44px; --text-h1-line: 1.05; --text-h1-weight: 900;
