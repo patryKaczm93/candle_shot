@@ -30,7 +30,7 @@ Frontend (w `frontend/`):
 - `npm run lint` / `npm run build`
 
 Stripe lokalnie:
-- `stripe listen --forward-to localhost:8000/api/webhooks/stripe`
+- `stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:8000/api/webhooks/stripe`
 - `stripe trigger checkout.session.completed`
 
 ## Zasady, których nie łamiemy

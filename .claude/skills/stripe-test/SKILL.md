@@ -9,7 +9,7 @@ Przetestuj integrację Stripe lokalnie, w trybie testowym.
 
 Przygotowanie (sprawdź, nie uruchamiaj w tle bez pytania):
 - backend działa na :8000, baza działa (`docker compose ps`),
-- w osobnym terminalu działa `stripe listen --forward-to localhost:8000/api/webhooks/stripe`, a jego `whsec_...` jest ustawiony jako `STRIPE_WEBHOOK_SECRET` w `backend/.env`. Jeśli nie, poproś mnie o uruchomienie i zatrzymaj się.
+- w osobnym terminalu działa `stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:8000/api/webhooks/stripe`, a jego `whsec_...` jest ustawiony jako `STRIPE_WEBHOOK_SECRET` w `backend/.env`. Jeśli nie, poproś mnie o uruchomienie i zatrzymaj się.
 
 1. Testy automatyczne: `uv run pytest -k "checkout or webhook or order"`. Wszystkie muszą przejść.
 2. Zdarzenia z CLI: `stripe trigger checkout.session.completed`, `stripe trigger checkout.session.expired`. Sprawdź w logach backendu odpowiedź 200 i brak wyjątków.

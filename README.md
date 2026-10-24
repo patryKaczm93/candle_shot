@@ -29,7 +29,7 @@ cp .env.example .env.local
 npm install
 npm run dev                                   # sklep na :5173
 
-stripe listen --forward-to localhost:8000/api/webhooks/stripe
+stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired --forward-to localhost:8000/api/webhooks/stripe
 ```
 
 ### Baza lokalna
@@ -46,3 +46,11 @@ stripe listen --forward-to localhost:8000/api/webhooks/stripe
 - `/next-story` — realizuje kolejną historyjkę z roadmapy.
 - `/stripe-test` — lokalny test integracji Stripe.
 - Agent `payment-reviewer` — przegląd bezpieczeństwa kodu płatności.
+
+### Stripe lokalnie
+
+- Pracujemy w **sandboxie** Stripe (konto PL, waluta PLN). Metody płatności: Settings → Payments → Payment methods → Cards, BLIK, Przelewy24.
+- Stripe CLI na Windows: `scoop bucket add stripe https://github.com/stripe/scoop-stripe-cli.git && scoop install stripe`, potem `stripe login` (wybierz ten sam sandbox).
+- `STRIPE_SECRET_KEY` (`sk_test_...`) w `backend/.env`: panel sandboxa → Developers → API keys.
+- `STRIPE_WEBHOOK_SECRET` (`whsec_...`) w `backend/.env`: wypisuje go `stripe listen` przy starcie. Jest stały dla danego logowania CLI.
+- `stripe listen` wymaga listy zdarzeń (`--events`). Słuchamy tylko czterech zdarzeń Checkout z `docs/ARCHITECTURE.md`.
