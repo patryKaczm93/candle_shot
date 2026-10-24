@@ -23,7 +23,7 @@ Przeglądarka → Cloudflare Pages (pliki statyczne). Przeglądarka → API (HTT
 3. Backend w jednej transakcji: ceny i stany z bazy, limit 10 szt. na pozycję, koszt dostawy i próg darmowej dostawy z `settings`, zapis `orders` (`pending`) + `order_items` (kopie nazw i cen), rezerwacja `stock`.
 4. Checkout Session: `price_data` w PLN w groszach, dostawa jako osobna pozycja, `metadata.order_id`, `client_reference_id`, `customer_email`, `expires_at` = +30 min. Zapis `stripe_session_id`, zwrot `url`.
 5. Webhook `POST /api/webhooks/stripe`: podpis → idempotencja (`stripe_events`) → zmiana statusu → 200.
-6. `/dziekujemy?session_id=…` odpytuje `GET /api/orders/by-session/{id}` co 2 s i pokazuje numer PM-XXXX.
+6. `/dziekujemy?session_id=…` odpytuje `GET /api/orders/by-session/{id}` co 2 s i pokazuje numer zamówienia (np. PM-7K3QX9).
 
 | Zdarzenie Stripe | Status | Dodatkowo |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ Kwoty zawsze `int` w groszach.
 | --- | --- | --- |
 | `products` | `id`, `slug`, `name`, `tagline`, `description`, `category`, `price_grosze`, `weight_g`, `badge`, `image`, `is_active`, `sort_order` | `slug` w adresie `/sklep/<slug>` |
 | `variants` | `id`, `product_id`, `name` (kolor gipsu), `hex`, `stock` | stan per kolor; `stock = 0` → „Ta partia się wypaliła” |
-| `orders` | `id`, `number` (PM-0001), `status`, `email`, `phone`, `shipping_method`, `locker_id`, `address_*`, `invoice_nip`, `invoice_name`, `subtotal_grosze`, `shipping_grosze`, `total_grosze`, `stripe_session_id`, `stripe_payment_intent`, `created_at`, `paid_at`, `shipped_at`, `tracking_number` | status: `pending`, `paid`, `shipped`, `cancelled`, `refunded` |
+| `orders` | `id`, `number` (losowy kod PM-7K3QX9), `status`, `email`, `phone`, `full_name`, `terms_accepted_at`, `shipping_method` (`locker`/`courier`), `locker_id`, `address_line`, `address_postal_code`, `address_city`, `invoice_nip`, `invoice_name`, `subtotal_grosze`, `shipping_grosze`, `total_grosze`, `stripe_session_id`, `stripe_payment_intent`, `created_at`, `paid_at`, `shipped_at`, `tracking_number` | status: `pending`, `paid`, `shipped`, `cancelled`, `refunded`; numer losowy, żeby nie zdradzał liczby zamówień; `id` nie wychodzi poza backend |
 | `order_items` | `order_id`, `variant_id`, `product_name`, `variant_name`, `unit_price_grosze`, `qty` | kopie: zmiana cennika nie zmienia starych zamówień |
 | `stripe_events` | `id` (= `event.id`, PK), `type`, `received_at` | idempotencja |
 | `settings` | `key`, `value` | ceny dostaw, próg darmowej dostawy |

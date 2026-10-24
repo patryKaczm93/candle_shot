@@ -11,7 +11,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 1 — Baza danych
 
-- [ ] **1.1 Modele i migracja.** Tabele z `docs/ARCHITECTURE.md` w SQLAlchemy 2.0, pierwsza migracja Alembic. Gotowe, gdy: `uv run alembic upgrade head` tworzy pustą bazę.
+- [x] **1.1 Modele i migracja.** Tabele z `docs/ARCHITECTURE.md` w SQLAlchemy 2.0, pierwsza migracja Alembic. Gotowe, gdy: `uv run alembic upgrade head` tworzy pustą bazę.
 - [ ] **1.2 Dane startowe.** `seed.py` z 4 produktami i 4 kolorami gipsu z makiety. Gotowe, gdy: po seedzie w bazie są produkty z wariantami i stanami.
 - [ ] **1.3 Testy modeli.** pytest z testową bazą PostgreSQL w Dockerze. Gotowe, gdy: test liczenia sumy zamówienia w groszach przechodzi.
 
@@ -76,3 +76,8 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 (Claude dopisuje tu pomysły spoza zakresu bieżącej historyjki.)
 
 - Pasek ogłoszeń nad nagłówkiem z makiety („Darmowa dostawa od [kwota] zł. Wysyłamy w [X] dni roboczych.”) — kwota z `GET /api/shipping`, najlepiej razem z 3.3 po 2.3.
+- Do 1.3: testy ograniczeń w bazie (ujemny `stock`, `total_grosze` ≠ suma, `qty` > 10, nieznany `status` → `IntegrityError`) oraz unikalność i format numeru zamówienia (`PM-` + 6 znaków bez 0/O/1/I/L).
+- Do 5.1 (z przeglądu `payment-reviewer`): scal lub odrzuć zdublowane `variant_id` w koszyku przed walidacją (baza i tak ma UNIQUE `(order_id, variant_id)`); sprawdź minimalną kwotę Stripe (2,00 zł); przy kolizji `orders.number` wygeneruj numer ponownie; walidacja NIP (10 cyfr + suma kontrolna) w Pydantic; klientowi zwracaj `number`, nigdy `id`.
+- Do 6.1: zapis do `stripe_events` i zmiana statusu w jednej transakcji (`INSERT ... ON CONFLICT DO NOTHING` + `rowcount`).
+- Do 6.2: zwrot stanu tylko gdy `UPDATE ... WHERE status='pending'` zmienił 1 wiersz, atomowo `stock = stock + qty`, pomiń pozycje z `variant_id IS NULL`. Płatność, która dojdzie po anulowaniu: log + e-mail do sprzedawcy i ręczny zwrot, bez cichego przywracania zamówienia.
+- Do 7.1: produkty wyłączamy (`is_active=false`), nie usuwamy (FK `RESTRICT`).
