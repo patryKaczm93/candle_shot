@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react'
+import { Link } from 'react-router'
 import offerCustomSvg from '../assets/illustrations/offer-custom.svg?raw'
 import offerMouldSvg from '../assets/illustrations/offer-mould.svg?raw'
 import ringBadgeSvg from '../assets/illustrations/ring-badge.svg?raw'
@@ -10,7 +11,9 @@ import stepWaxSvg from '../assets/illustrations/step-wax.svg?raw'
 import { Button } from '../components/Button'
 import { CandleIllustration } from '../components/CandleIllustration'
 import { Illustration } from '../components/Illustration'
+import { ProductCard } from '../components/ProductCard'
 import { mailto } from '../shop'
+import { useProducts } from '../useProducts'
 import styles from './HomePage.module.css'
 
 // Plaster colours from the mockup; on the home page they only recolour the hero illustration.
@@ -71,7 +74,7 @@ export function HomePage() {
     <>
       <Hero />
       <TrustStrip />
-      {/* TODO(3.1): "Najchętniej zapalane" product grid, once GET /api/products exists (2.1). */}
+      <Bestsellers />
       <Workshop />
       <CustomOrders />
       {/* Customer reviews stay hidden until there are real ones (docs/design/DESIGN.md). */}
@@ -174,6 +177,33 @@ function TrustStrip() {
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+// First four products in shop order; hidden when the API is unavailable, the rest of the page still works.
+function Bestsellers() {
+  const state = useProducts()
+  if (state.status !== 'ready' || state.products.length === 0) return null
+
+  return (
+    <section className={`wrap ${styles.bestsellers}`}>
+      <div className={styles.sectionHead}>
+        <div>
+          <h2 className={`disp ${styles.sectionTitle} ${styles.reveal}`}>Najchętniej zapalane</h2>
+          <p className={`${styles.bestsellersLead} ${styles.reveal}`}>
+            Najedź na świeczkę, żeby ją zapalić. Te cztery zapachy wracają do nas najczęściej.
+          </p>
+        </div>
+        <Link to="/sklep" className={styles.allLink}>
+          Wszystkie świeczki →
+        </Link>
+      </div>
+      <div className={styles.bestsellersGrid}>
+        {state.products.slice(0, 4).map((product, i) => (
+          <ProductCard key={product.slug} product={product} index={i} />
+        ))}
+      </div>
     </section>
   )
 }

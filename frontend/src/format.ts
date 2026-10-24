@@ -11,3 +11,14 @@ export function cartLabel(count: number): string {
   if (count === 0) return 'Koszyk, pusty'
   return `Koszyk, ${count} ${pluralPl(count, ['produkt', 'produkty', 'produktów'])}`
 }
+
+const priceFormat = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' })
+
+/** Grosze from the API → "49,00 zł". Display only; the backend owns all amounts. */
+export function formatPrice(grosze: number): string {
+  return priceFormat.format(grosze / 100)
+}
+
+export function candleCount(count: number): string {
+  return `${count} ${pluralPl(count, ['świeczka', 'świeczki', 'świeczek'])}`
+}

@@ -23,7 +23,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 3 — Frontend katalogu
 
-- [ ] **3.1 Sklep.** Ekran „Sklep” z makiety na danych z API, filtr kategorii. Gotowe, gdy: działa na 390 px i na komputerze.
+- [x] **3.1 Sklep.** Ekran „Sklep” z makiety na danych z API, filtr kategorii. Gotowe, gdy: działa na 390 px i na komputerze.
 - [ ] **3.2 Karta produktu.** Wybór koloru gipsu, licznik 1–10, stany „Wyprzedana” i „Ostatnia sztuka”. Gotowe, gdy: przy `stock = 0` przycisk „Dodaj” jest nieaktywny.
 - [x] **3.3 Strona główna** i strony prawne (regulamin, polityka prywatności, dostawa i zwroty). Gotowe, gdy: linki w stopce działają.
 
@@ -80,12 +80,11 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 6.1: zapis do `stripe_events` i zmiana statusu w jednej transakcji (`INSERT ... ON CONFLICT DO NOTHING` + `rowcount`).
 - Do 6.2: zwrot stanu tylko gdy `UPDATE ... WHERE status='pending'` zmienił 1 wiersz, atomowo `stock = stock + qty`, pomiń pozycje z `variant_id IS NULL`. Płatność, która dojdzie po anulowaniu: log + e-mail do sprzedawcy i ręczny zwrot, bez cichego przywracania zamówienia.
 - Do 7.1: produkty wyłączamy (`is_active=false`), nie usuwamy (FK `RESTRICT`).
-- Do 3.1: sekcja „Najchętniej zapalane” na stronie głównej (4 karty produktów z `GET /api/products`) — pominięta w 3.3, bo ceny muszą pochodzić z API.
 - Newsletter „Nowe zapachy prosto do skrzynki” z makiety strony głównej — wymaga usługi mailingowej i zgody RODO; na razie pominięty.
 - Do 9.3: uzupełnić `CONTACT_EMAIL` w `frontend/src/shop.ts`, link do Instagrama, `[miasto]` i `[X] dni` na stronie głównej, treść regulaminu, polityki prywatności oraz dostawy i zwrotów.
 - Do 5.1 (z przeglądu 1.3): koszt dostawy i próg z `settings.value` (tekst) parsuj jawnie do `int` i waliduj, nigdy przez `float`; przy kolizji `orders.number` ponów generowanie, zanim klient dostanie 500.
 - Do 5.1/9.1: test „dwóch kupujących ostatnią sztukę” i `SELECT ... FOR UPDATE` wymaga osobnego fixture'a z prawdziwym commitem na dwóch połączeniach (np. `committed_db` + `TRUNCATE ... RESTART IDENTITY CASCADE`); obecny `db` (jedna transakcja z rollbackiem) tego nie udowodni.
 - Do 6.x: webhook i e-maile biorą sesję z `app.db.SessionLocal` (w testach podmieniona na bazę testową), nigdy z własnego silnika.
 - Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.
-- Do 3.1: filtr „Ostatnie sztuki” z makiety Sklep to raczej stan niż kategoria — np. produkty z `availability = "last"` w którymś wariancie, liczone po stronie API (`?only=last`), albo zwykła kategoria ustawiana w panelu. Zdecydować przy 3.1.
 - Do 5.1 (z przeglądu 2.3): `shipping_cost_grosze` dostaje `subtotal` policzony z cen z bazy (wiersze z `FOR UPDATE`); `method` w schemacie requestu jako `Literal["locker", "courier"]` (422, nie 500); ustawienia czytane raz, w tej samej transakcji co zamówienie; `ShippingSettingsError` → 503 i rollback bez sesji Stripe; dostawa jako osobna pozycja w `line_items`, pomijana przy koszcie 0.
+- Sortowanie „Najnowsze” z makiety Sklep — wymaga daty dodania produktu w API (`created_at` w `products` + migracja).
