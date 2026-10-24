@@ -92,7 +92,7 @@ function ShopResults({ state, category, sort, onShowAll }: ShopResultsProps) {
     )
   }
 
-  if (state.status === 'error') {
+  if (state.status === 'error' || state.status === 'not-found') {
     return (
       <div className={styles.message} role="alert">
         <h2 className={`disp ${styles.messageTitle}`}>Nie udało się wczytać świeczek</h2>
@@ -102,7 +102,7 @@ function ShopResults({ state, category, sort, onShowAll }: ShopResultsProps) {
     )
   }
 
-  const shown = filterAndSort(state.products, category, sort)
+  const shown = filterAndSort(state.data, category, sort)
 
   return (
     <>

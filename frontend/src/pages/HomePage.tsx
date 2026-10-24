@@ -184,7 +184,7 @@ function TrustStrip() {
 // First four products in shop order; hidden when the API is unavailable, the rest of the page still works.
 function Bestsellers() {
   const state = useProducts()
-  if (state.status !== 'ready' || state.products.length === 0) return null
+  if (state.status !== 'ready' || state.data.length === 0) return null
 
   return (
     <section className={`wrap ${styles.bestsellers}`}>
@@ -200,7 +200,7 @@ function Bestsellers() {
         </Link>
       </div>
       <div className={styles.bestsellersGrid}>
-        {state.products.slice(0, 4).map((product, i) => (
+        {state.data.slice(0, 4).map((product, i) => (
           <ProductCard key={product.slug} product={product} index={i} />
         ))}
       </div>

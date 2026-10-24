@@ -24,7 +24,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 3 — Frontend katalogu
 
 - [x] **3.1 Sklep.** Ekran „Sklep” z makiety na danych z API, filtr kategorii. Gotowe, gdy: działa na 390 px i na komputerze.
-- [ ] **3.2 Karta produktu.** Wybór koloru gipsu, licznik 1–10, stany „Wyprzedana” i „Ostatnia sztuka”. Gotowe, gdy: przy `stock = 0` przycisk „Dodaj” jest nieaktywny.
+- [x] **3.2 Karta produktu.** Wybór koloru gipsu, licznik 1–10, stany „Wyprzedana” i „Ostatnia sztuka”. Gotowe, gdy: przy `stock = 0` przycisk „Dodaj” jest nieaktywny.
 - [x] **3.3 Strona główna** i strony prawne (regulamin, polityka prywatności, dostawa i zwroty). Gotowe, gdy: linki w stopce działają.
 
 ## Faza 4 — Koszyk
@@ -88,3 +88,4 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.
 - Do 5.1 (z przeglądu 2.3): `shipping_cost_grosze` dostaje `subtotal` policzony z cen z bazy (wiersze z `FOR UPDATE`); `method` w schemacie requestu jako `Literal["locker", "courier"]` (422, nie 500); ustawienia czytane raz, w tej samej transakcji co zamówienie; `ShippingSettingsError` → 503 i rollback bez sesji Stripe; dostawa jako osobna pozycja w `line_items`, pomijana przy koszcie 0.
 - Sortowanie „Najnowsze” z makiety Sklep — wymaga daty dodania produktu w API (`created_at` w `products` + migracja).
+- Nuty zapachowe „Góra / Serce / Baza” z makiety Produkt — wymagają nowych kolumn w `products` (migracja) i pól w API/panelu.

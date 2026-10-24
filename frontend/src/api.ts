@@ -43,3 +43,20 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 export function fetchProducts(signal?: AbortSignal): Promise<Product[]> {
   return getJson<Product[]>('/api/products', signal)
 }
+
+export type ProductDetail = Product & {
+  description: string
+}
+
+export type ShippingInfo = {
+  methods: { id: 'locker' | 'courier'; name: string; price_grosze: number }[]
+  free_shipping_threshold_grosze: number
+}
+
+export function fetchProduct(slug: string, signal?: AbortSignal): Promise<ProductDetail> {
+  return getJson<ProductDetail>(`/api/products/${encodeURIComponent(slug)}`, signal)
+}
+
+export function fetchShipping(signal?: AbortSignal): Promise<ShippingInfo> {
+  return getJson<ShippingInfo>('/api/shipping', signal)
+}
