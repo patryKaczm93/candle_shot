@@ -9,10 +9,8 @@ from app.config import Settings
 from app.db import get_db
 from app.main import app
 
-client = TestClient(app)
 
-
-def test_health_with_db_returns_ok() -> None:
+def test_health_with_db_returns_ok(client: TestClient) -> None:
     response = client.get("/api/health")
 
     assert response.status_code == 200
@@ -30,7 +28,7 @@ def test_health_with_db_down_returns_503() -> None:
 
     app.dependency_overrides[get_db] = broken_db
     try:
-        response = client.get("/api/health")
+        response = TestClient(app).get("/api/health")
     finally:
         app.dependency_overrides.clear()
 

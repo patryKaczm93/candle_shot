@@ -13,7 +13,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 - [x] **1.1 Modele i migracja.** Tabele z `docs/ARCHITECTURE.md` w SQLAlchemy 2.0, pierwsza migracja Alembic. Gotowe, gdy: `uv run alembic upgrade head` tworzy pustą bazę.
 - [x] **1.2 Dane startowe.** `seed.py` z 4 produktami i 4 kolorami gipsu z makiety. Gotowe, gdy: po seedzie w bazie są produkty z wariantami i stanami.
-- [ ] **1.3 Testy modeli.** pytest z testową bazą PostgreSQL w Dockerze. Gotowe, gdy: test liczenia sumy zamówienia w groszach przechodzi.
+- [x] **1.3 Testy modeli.** pytest z testową bazą PostgreSQL w Dockerze. Gotowe, gdy: test liczenia sumy zamówienia w groszach przechodzi.
 
 ## Faza 2 — API katalogu
 
@@ -76,7 +76,6 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 (Claude dopisuje tu pomysły spoza zakresu bieżącej historyjki.)
 
 - Pasek ogłoszeń nad nagłówkiem z makiety („Darmowa dostawa od [kwota] zł. Wysyłamy w [X] dni roboczych.”) — kwota z `GET /api/shipping`, najlepiej razem z 3.3 po 2.3.
-- Do 1.3: testy ograniczeń w bazie (ujemny `stock`, `total_grosze` ≠ suma, `qty` > 10, nieznany `status` → `IntegrityError`) oraz unikalność i format numeru zamówienia (`PM-` + 6 znaków bez 0/O/1/I/L).
 - Do 5.1 (z przeglądu `payment-reviewer`): scal lub odrzuć zdublowane `variant_id` w koszyku przed walidacją (baza i tak ma UNIQUE `(order_id, variant_id)`); sprawdź minimalną kwotę Stripe (2,00 zł); przy kolizji `orders.number` wygeneruj numer ponownie; walidacja NIP (10 cyfr + suma kontrolna) w Pydantic; klientowi zwracaj `number`, nigdy `id`.
 - Do 6.1: zapis do `stripe_events` i zmiana statusu w jednej transakcji (`INSERT ... ON CONFLICT DO NOTHING` + `rowcount`).
 - Do 6.2: zwrot stanu tylko gdy `UPDATE ... WHERE status='pending'` zmienił 1 wiersz, atomowo `stock = stock + qty`, pomiń pozycje z `variant_id IS NULL`. Płatność, która dojdzie po anulowaniu: log + e-mail do sprzedawcy i ręczny zwrot, bez cichego przywracania zamówienia.
@@ -84,3 +83,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 3.1: sekcja „Najchętniej zapalane” na stronie głównej (4 karty produktów z `GET /api/products`) — pominięta w 3.3, bo ceny muszą pochodzić z API.
 - Newsletter „Nowe zapachy prosto do skrzynki” z makiety strony głównej — wymaga usługi mailingowej i zgody RODO; na razie pominięty.
 - Do 9.3: uzupełnić `CONTACT_EMAIL` w `frontend/src/shop.ts`, link do Instagrama, `[miasto]` i `[X] dni` na stronie głównej, treść regulaminu, polityki prywatności oraz dostawy i zwrotów.
+- Do 5.1 (z przeglądu 1.3): koszt dostawy i próg z `settings.value` (tekst) parsuj jawnie do `int` i waliduj, nigdy przez `float`; przy kolizji `orders.number` ponów generowanie, zanim klient dostanie 500.
+- Do 5.1/9.1: test „dwóch kupujących ostatnią sztukę” i `SELECT ... FOR UPDATE` wymaga osobnego fixture'a z prawdziwym commitem na dwóch połączeniach (np. `committed_db` + `TRUNCATE ... RESTART IDENTITY CASCADE`); obecny `db` (jedna transakcja z rollbackiem) tego nie udowodni.
+- Do 6.x: webhook i e-maile biorą sesję z `app.db.SessionLocal` (w testach podmieniona na bazę testową), nigdy z własnego silnika.
+- Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.

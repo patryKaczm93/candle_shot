@@ -39,6 +39,7 @@ stripe listen --events checkout.session.completed,checkout.session.async_payment
 - `docker compose ps` pokazuje `healthy`, gdy baza przyjmuje połączenia.
 - Kontener ma dwie bazy: `pachnie` (dev) i `pachnie_test` (pytest). Bazę testową tworzy `docker/init-test-db.sql`, ale tylko przy pierwszym utworzeniu wolumenu.
 - Reset bazy od zera (kasuje dane): `docker compose down -v && docker compose up -d db`.
+- `uv run pytest` używa bazy `pachnie_test` (`TEST_DATABASE_URL`) i przy każdym uruchomieniu odtwarza jej schemat z migracji. Bazy deweloperskiej nie dotyka; odmówi startu, jeśli adres nie wskazuje lokalnej bazy `*_test`. Jeśli testy zgłaszają brak `pachnie_test` (wolumen sprzed skryptu), utwórz ją: `docker compose exec db createdb -U pachnie pachnie_test`.
 
 ## Praca z Claude Code
 
