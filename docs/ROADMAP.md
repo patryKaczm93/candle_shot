@@ -34,7 +34,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 5 — Checkout ze Stripe (lokalnie)
 
-- [ ] **5.1 `POST /api/checkout`.** Walidacja, ceny z bazy, rezerwacja stanu, zapis `pending`, Checkout Session. Gotowe, gdy: test z podstawionym klientem Stripe sprawdza, że cena z requestu jest ignorowana.
+- [x] **5.1 `POST /api/checkout`.** Walidacja, ceny z bazy, rezerwacja stanu, zapis `pending`, Checkout Session. Gotowe, gdy: test z podstawionym klientem Stripe sprawdza, że cena z requestu jest ignorowana.
 - [ ] **5.2 Formularz zamówienia.** Kontakt, Paczkomat (InPost Geowidget) albo adres kuriera, NIP, zgoda. Gotowe, gdy: błędy walidacji wyświetlają się przy polach.
 - [ ] **5.3 Przekierowanie i powrót.** Redirect na Stripe, strony `/dziekujemy` i `/zamowienie/anulowane`. Gotowe, gdy: płatność kartą `4242 4242 4242 4242` kończy się na stronie podziękowania.
 
@@ -76,18 +76,16 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 (Claude dopisuje tu pomysły spoza zakresu bieżącej historyjki.)
 
 - Pasek ogłoszeń nad nagłówkiem z makiety („Darmowa dostawa od [kwota] zł. Wysyłamy w [X] dni roboczych.”) — kwota z `GET /api/shipping`, najlepiej razem z 3.3 po 2.3.
-- Do 5.1 (z przeglądu `payment-reviewer`): scal lub odrzuć zdublowane `variant_id` w koszyku przed walidacją (baza i tak ma UNIQUE `(order_id, variant_id)`); sprawdź minimalną kwotę Stripe (2,00 zł); przy kolizji `orders.number` wygeneruj numer ponownie; walidacja NIP (10 cyfr + suma kontrolna) w Pydantic; klientowi zwracaj `number`, nigdy `id`.
 - Do 6.1: zapis do `stripe_events` i zmiana statusu w jednej transakcji (`INSERT ... ON CONFLICT DO NOTHING` + `rowcount`).
 - Do 6.2: zwrot stanu tylko gdy `UPDATE ... WHERE status='pending'` zmienił 1 wiersz, atomowo `stock = stock + qty`, pomiń pozycje z `variant_id IS NULL`. Płatność, która dojdzie po anulowaniu: log + e-mail do sprzedawcy i ręczny zwrot, bez cichego przywracania zamówienia.
 - Do 7.1: produkty wyłączamy (`is_active=false`), nie usuwamy (FK `RESTRICT`).
 - Newsletter „Nowe zapachy prosto do skrzynki” z makiety strony głównej — wymaga usługi mailingowej i zgody RODO; na razie pominięty.
 - Do 9.3: uzupełnić `CONTACT_EMAIL` w `frontend/src/shop.ts`, link do Instagrama, `[miasto]` i `[X] dni` na stronie głównej, treść regulaminu, polityki prywatności oraz dostawy i zwrotów.
-- Do 5.1 (z przeglądu 1.3): koszt dostawy i próg z `settings.value` (tekst) parsuj jawnie do `int` i waliduj, nigdy przez `float`; przy kolizji `orders.number` ponów generowanie, zanim klient dostanie 500.
-- Do 5.1/9.1: test „dwóch kupujących ostatnią sztukę” i `SELECT ... FOR UPDATE` wymaga osobnego fixture'a z prawdziwym commitem na dwóch połączeniach (np. `committed_db` + `TRUNCATE ... RESTART IDENTITY CASCADE`); obecny `db` (jedna transakcja z rollbackiem) tego nie udowodni.
 - Do 6.x: webhook i e-maile biorą sesję z `app.db.SessionLocal` (w testach podmieniona na bazę testową), nigdy z własnego silnika.
 - Do 6.2/7.1: usunięcie wariantu ustawia `order_items.variant_id = NULL`, więc anulowanie zamówienia `pending` nie odda stanu. Rozważ `RESTRICT` na `order_items.variant_id` (nowa migracja) albo tylko dezaktywację wariantów; minimum to obsługa `NULL` w 6.2 z testem.
-- Do 5.1 (z przeglądu 2.3): `shipping_cost_grosze` dostaje `subtotal` policzony z cen z bazy (wiersze z `FOR UPDATE`); `method` w schemacie requestu jako `Literal["locker", "courier"]` (422, nie 500); ustawienia czytane raz, w tej samej transakcji co zamówienie; `ShippingSettingsError` → 503 i rollback bez sesji Stripe; dostawa jako osobna pozycja w `line_items`, pomijana przy koszcie 0.
 - Sortowanie „Najnowsze” z makiety Sklep — wymaga daty dodania produktu w API (`created_at` w `products` + migracja).
 - Nuty zapachowe „Góra / Serce / Baza” z makiety Produkt — wymagają nowych kolumn w `products` (migracja) i pól w API/panelu.
 - Toast „Dodano do koszyka” z linkiem „Koszyk →” (makieta, DESIGN.md) — karta produktu ma na razie tylko „Dodano” na przycisku; link powinien otwierać szufladę (`useCart().open`).
 - Szuflada: animacje z makiety, których nie ma w 4.2 — wyjazd pozycji po „Usuń” (`itemOut`), „przewijanie” liczników (`.roll`) i zmiana komunikatu dostawy (`.swap`).
+- Do 5.2: `POST /api/checkout` zwraca `detail` jako tekst (422 z naszych reguł, 502, 503), listę błędów Pydantic (422 walidacji pól, `loc` wskazuje pole) albo obiekt `{message, unavailable_variant_ids}` (409); formularz musi obsłużyć wszystkie trzy. Przycisk „Zamawiam i płacę” blokować po kliknięciu (każde kliknięcie to nowe zamówienie i rezerwacja).
+- Do 6.2/9.1 (z przeglądu 5.1): limit żądań `POST /api/checkout` (na IP i/lub liczba `pending` na e-mail) — inaczej można zarezerwować cały magazyn na 31 min i powtarzać. Do czasu 6.2 porzucone zamówienia w ogóle nie oddają stanu.

@@ -1,5 +1,7 @@
 from collections.abc import Iterator
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from alembic import command
@@ -12,6 +14,7 @@ import app.db
 from app.config import settings
 from app.db import get_db
 from app.main import app as fastapi_app
+from app.services.checkout import get_stripe_client
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
@@ -54,6 +57,14 @@ def no_dev_database(engine: Engine) -> Iterator[None]:
         yield
 
 
+@pytest.fixture(scope="session", autouse=True)
+def no_real_stripe() -> Iterator[None]:
+    """Without a fake client, checkout fails instead of reaching Stripe with the key from .env."""
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(settings, "stripe_secret_key", "")
+        yield
+
+
 @pytest.fixture
 def db(engine: Engine) -> Iterator[Session]:
     """Session inside a transaction that is rolled back after each test."""
@@ -77,3 +88,59 @@ def client(db: Session) -> Iterator[TestClient]:
         yield TestClient(fastapi_app)
     finally:
         fastapi_app.dependency_overrides.clear()
+
+
+class FakeCheckoutSessions:
+    """Stands in for client.v1.checkout.sessions; records every call."""
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+        self.expired: list[str] = []
+        self.error: Exception | None = None
+        # Simulates a Stripe total that differs from ours (e.g. a rounding bug).
+        self.amount_total_offset = 0
+
+    def create(self, params: dict[str, Any], options: dict[str, Any]) -> SimpleNamespace:
+        self.calls.append({"params": params, "options": options})
+        if self.error:
+            raise self.error
+        n = len(self.calls)
+        return SimpleNamespace(
+            id=f"cs_test_{n}",
+            url=f"https://checkout.stripe.com/c/pay/cs_test_{n}",
+            # Stripe computes the total from line_items, so the fake does too.
+            amount_total=sum(
+                li["price_data"]["unit_amount"] * li["quantity"] for li in params["line_items"]
+            )
+            + self.amount_total_offset,
+        )
+
+    def expire(self, session_id: str) -> SimpleNamespace:
+        self.expired.append(session_id)
+        return SimpleNamespace(id=session_id, status="expired")
+
+
+class FakeStripe:
+    def __init__(self) -> None:
+        self.sessions = FakeCheckoutSessions()
+        self.v1 = SimpleNamespace(checkout=SimpleNamespace(sessions=self.sessions))
+
+
+@pytest.fixture
+def fake_stripe(client: TestClient) -> FakeStripe:
+    fake = FakeStripe()
+    fastapi_app.dependency_overrides[get_stripe_client] = lambda: fake
+    return fake
+
+
+@pytest.fixture
+def committed_sessions(engine: Engine) -> Iterator[sessionmaker[Session]]:
+    """Sessions that really commit (e.g. two concurrent buyers); tables are emptied afterwards."""
+    yield sessionmaker(bind=engine, **SESSION_OPTIONS)
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "TRUNCATE order_items, orders, variants, products, settings, stripe_events"
+                " RESTART IDENTITY CASCADE"
+            )
+        )

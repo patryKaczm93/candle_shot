@@ -1,1 +1,2 @@
 - [Int parsing of money settings](pattern_int_parsing.md) — no upper bound on parsed grosze; huge digits give ValueError/500
+- [Wzorce błędów w ścieżce płatności](feedback_checkout_patterns.md) — osierocone sesje Stripe, rate limit, timeout, populate_existing, tautologiczne fake-i

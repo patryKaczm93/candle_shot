@@ -4,8 +4,9 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.models import Order, OrderItem, Product, Variant
+from app.models import Order, OrderItem, Product, Setting, Variant
 from app.services.orders import OrderLine, calculate_totals
+from app.services.shipping import COURIER_KEY, FREE_THRESHOLD_KEY, LOCKER_KEY
 
 _sequence = count(1)
 
@@ -83,3 +84,15 @@ def make_order(
     db.add(order)
     db.flush()
     return order
+
+
+def add_shipping_settings(
+    db: Session, locker: int = 1400, courier: int = 1800, free_from: int = 20000
+) -> None:
+    for key, value in {
+        LOCKER_KEY: locker,
+        COURIER_KEY: courier,
+        FREE_THRESHOLD_KEY: free_from,
+    }.items():
+        db.add(Setting(key=key, value=str(value)))
+    db.flush()
