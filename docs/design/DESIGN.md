@@ -83,3 +83,4 @@ System designu wymienia też 4 oryginalne pliki logo od właściciela marki (JPG
 - **Zdjęcia:** ilustracje doniczek w makiecie zastępują zdjęcia. Kiedy zdjęcia będą gotowe, wchodzą w to samo miejsce (`aspect-ratio: 1/1`, tło krem-ciemny, promień 20 px).
 - **Opinie klientów** na stronie głównej pokazujemy tylko prawdziwe. Do czasu ich zebrania sekcja jest ukryta.
 - **Motyw „Wieczorny”** (ciemny) istnieje w tokenach, ale na start go nie włączamy.
+- **Strona główna (decyzja właściciela):** sekcja „Świeczka w Twoim kształcie” nie przykleja się przy przewijaniu (bez `position: sticky`). W hero panel ze świeczką odsłania się od dołu, w tym samym kierunku co wjeżdżające linie nagłówka.
