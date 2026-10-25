@@ -36,7 +36,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 - [x] **5.1 `POST /api/checkout`.** Walidacja, ceny z bazy, rezerwacja stanu, zapis `pending`, Checkout Session. Gotowe, gdy: test z podstawionym klientem Stripe sprawdza, że cena z requestu jest ignorowana.
 - [x] **5.2 Formularz zamówienia.** Kontakt, Paczkomat (InPost Geowidget) albo adres kuriera, NIP, zgoda. Gotowe, gdy: błędy walidacji wyświetlają się przy polach.
-- [ ] **5.3 Przekierowanie i powrót.** Redirect na Stripe, strony `/dziekujemy` i `/zamowienie/anulowane`. Gotowe, gdy: płatność kartą `4242 4242 4242 4242` kończy się na stronie podziękowania.
+- [x] **5.3 Przekierowanie i powrót.** Redirect na Stripe, strony `/dziekujemy` i `/zamowienie/anulowane`. Gotowe, gdy: płatność kartą `4242 4242 4242 4242` kończy się na stronie podziękowania.
 
 ## Faza 6 — Webhooki i cykl życia zamówienia
 
@@ -91,3 +91,4 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Mapa Paczkomatów (InPost Geowidget): wymaga tokenu z panelu InPost (zmienna `VITE_INPOST_GEOWIDGET_TOKEN`). Podmiana tylko w `frontend/src/components/LockerPicker.tsx` — te same propsy, przycisk „Wybierz na mapie” jak w makiecie, `onChange(point.name)` z wybranego punktu. Na razie klient wpisuje kod Paczkomatu.
 - Ekran zamówienia: uproszczony nagłówek z makiety (logo + „Bezpieczne zamówienie”, bez nawigacji i stopki) — dziś `/zamowienie` używa zwykłego `Layout`.
 - Do 9.1 (z przeglądu 5.2): klucz idempotencji z przeglądarki w `POST /api/checkout` (np. UUID na próbę zamówienia), żeby ponowienie po zerwanym połączeniu nie tworzyło drugiego zamówienia i drugiej rezerwacji.
+- Do 6.2 (z 5.3): po „Anuluj” na stronie Stripe zamówienie `pending` trzyma rezerwację do wygaśnięcia sesji (31 min). Przy ostatniej sztuce klient, który wraca do zamówienia, blokuje sam siebie (409). Rozważ wygaszenie sesji (`sessions.expire`) przy wejściu na `/zamowienie/anulowane?session_id=…` — webhook `checkout.session.expired` odda wtedy stan od razu.

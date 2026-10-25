@@ -1,0 +1,50 @@
+.page {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-6);
+}
+
+/* Same block as the "done" state in the Zamowienie mockup. */
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 56px 48px;
+  border-radius: var(--radius-lg);
+  background: var(--color-krem-jasny);
+  text-align: center;
+}
+
+.candle {
+  width: 140px;
+  height: 140px;
+}
+
+.title {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.05;
+}
+
+.text {
+  max-width: 480px;
+  margin: 0 0 var(--space-2);
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-5);
+  }
+
+  .card {
+    padding: var(--space-5) var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .title {
+    font-size: 30px;
+  }
+}
