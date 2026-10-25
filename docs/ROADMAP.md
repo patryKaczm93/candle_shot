@@ -30,7 +30,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 4 — Koszyk
 
 - [x] **4.1 Stan koszyka.** Hook `useCart` z zapisem w `localStorage`. Gotowe, gdy: koszyk przetrwa odświeżenie strony.
-- [ ] **4.2 Szuflada koszyka** z makiety: zmiana ilości, usuwanie, pasek darmowej dostawy, pusty koszyk. Gotowe, gdy: długie nazwy i 10 sztuk wyglądają dobrze.
+- [x] **4.2 Szuflada koszyka** z makiety: zmiana ilości, usuwanie, pasek darmowej dostawy, pusty koszyk. Gotowe, gdy: długie nazwy i 10 sztuk wyglądają dobrze.
 
 ## Faza 5 — Checkout ze Stripe (lokalnie)
 
@@ -89,3 +89,5 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 5.1 (z przeglądu 2.3): `shipping_cost_grosze` dostaje `subtotal` policzony z cen z bazy (wiersze z `FOR UPDATE`); `method` w schemacie requestu jako `Literal["locker", "courier"]` (422, nie 500); ustawienia czytane raz, w tej samej transakcji co zamówienie; `ShippingSettingsError` → 503 i rollback bez sesji Stripe; dostawa jako osobna pozycja w `line_items`, pomijana przy koszcie 0.
 - Sortowanie „Najnowsze” z makiety Sklep — wymaga daty dodania produktu w API (`created_at` w `products` + migracja).
 - Nuty zapachowe „Góra / Serce / Baza” z makiety Produkt — wymagają nowych kolumn w `products` (migracja) i pól w API/panelu.
+- Toast „Dodano do koszyka” z linkiem „Koszyk →” (makieta, DESIGN.md) — karta produktu ma na razie tylko „Dodano” na przycisku; link powinien otwierać szufladę (`useCart().open`).
+- Szuflada: animacje z makiety, których nie ma w 4.2 — wyjazd pozycji po „Usuń” (`itemOut`), „przewijanie” liczników (`.roll`) i zmiana komunikatu dostawy (`.swap`).

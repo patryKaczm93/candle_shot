@@ -5,6 +5,7 @@ import { CART_STORAGE_KEY, browserStorage, loadCart, parseCart, saveCart } from 
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Cart>(() => loadCart(browserStorage()))
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     saveCart(browserStorage(), items)
@@ -29,10 +30,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((cart) => removeItem(cart, variantId))
   }, [])
   const clear = useCallback(() => setItems([]), [])
+  const open = useCallback(() => setIsOpen(true), [])
+  const close = useCallback(() => setIsOpen(false), [])
 
   const value = useMemo(
-    () => ({ items, count: cartCount(items), add, setQty: changeQty, remove, clear }),
-    [items, add, changeQty, remove, clear],
+    () => ({ items, count: cartCount(items), add, setQty: changeQty, remove, clear, isOpen, open, close }),
+    [items, add, changeQty, remove, clear, isOpen, open, close],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

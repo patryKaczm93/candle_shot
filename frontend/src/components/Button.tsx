@@ -11,7 +11,7 @@ type CommonProps = {
 
 type ButtonProps = CommonProps &
   (
-    | { to: string; href?: undefined }
+    | { to: string; href?: undefined; onClick?: () => void }
     | { href: string; to?: undefined }
     | ({ to?: undefined; href?: undefined } & ButtonHTMLAttributes<HTMLButtonElement>)
   )
@@ -32,7 +32,7 @@ export function Button({ variant = 'main', arrow = false, className, children, .
 
   if (rest.to !== undefined) {
     return (
-      <Link to={rest.to} className={classes}>
+      <Link to={rest.to} className={classes} onClick={rest.onClick}>
         {content}
       </Link>
     )

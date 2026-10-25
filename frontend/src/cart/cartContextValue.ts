@@ -8,6 +8,10 @@ export type CartContextValue = {
   setQty: (variantId: number, qty: number) => void
   remove: (variantId: number) => void
   clear: () => void
+  /** Cart drawer visibility. */
+  isOpen: boolean
+  open: () => void
+  close: () => void
 }
 
 export const CartContext = createContext<CartContextValue | null>(null)

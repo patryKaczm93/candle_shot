@@ -17,9 +17,10 @@ const NAV_LINKS = [
 
 type HeaderProps = {
   cartCount: number
+  onOpenCart: () => void
 }
 
-export function Header({ cartCount }: HeaderProps) {
+export function Header({ cartCount, onOpenCart }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
 
@@ -34,14 +35,20 @@ export function Header({ cartCount }: HeaderProps) {
           ))}
         </nav>
 
-        <Button variant="ghost" to="/koszyk" className={styles.cartDesktop}>
+        <Button
+          variant="ghost"
+          className={styles.cartDesktop}
+          aria-haspopup="dialog"
+          aria-label={cartLabel(cartCount)}
+          onClick={onOpenCart}
+        >
           <CartIcon />
           Koszyk
           {cartCount > 0 && <Badge count>{cartCount}</Badge>}
         </Button>
 
         <div className={styles.mobileActions}>
-          <IconButton to="/koszyk" label={cartLabel(cartCount)} count={cartCount}>
+          <IconButton label={cartLabel(cartCount)} count={cartCount} aria-haspopup="dialog" onClick={onOpenCart}>
             <CartIcon />
           </IconButton>
           <IconButton

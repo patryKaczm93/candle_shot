@@ -1,0 +1,529 @@
+/* Native <dialog> as the panel: right-hand drawer (500 px) on desktop, bottom sheet on phones. */
+.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: 500px;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-left: var(--obrys) solid var(--color-braz);
+  background: var(--color-krem);
+  color: var(--color-braz);
+  overflow: hidden;
+}
+
+.drawer::backdrop {
+  background: rgba(74, 42, 18, 0.5);
+}
+
+/* The page behind does not scroll while the cart is open. */
+:global(html:has(dialog[open])) {
+  overflow: hidden;
+}
+
+.panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.handle {
+  display: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px var(--space-4);
+  border-bottom: var(--obrys) solid var(--color-braz);
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.count {
+  font-size: 20px;
+  color: var(--color-braz-miekki);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.status {
+  padding: var(--space-4);
+}
+
+.status p {
+  margin: 0 0 var(--space-3);
+}
+
+/* Free shipping bar */
+.shipping {
+  padding: 18px var(--space-4);
+  background: var(--color-krem-jasny);
+}
+
+.shippingMsg {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.track {
+  height: 14px;
+  border-radius: var(--radius-pill);
+  border: var(--obrys) solid var(--color-braz);
+  background: var(--color-krem);
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  background: var(--color-pomarancz);
+  transition: background-color 300ms ease;
+}
+
+.barFree {
+  background: var(--color-oliwka);
+}
+
+/* Items */
+.items {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 12px var(--space-4);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  gap: var(--space-3);
+  padding: 14px;
+  background: var(--color-krem-jasny);
+  border-radius: 18px;
+}
+
+.thumb {
+  flex: 0 0 88px;
+  height: 88px;
+  background: var(--color-krem-ciemny);
+  border: var(--obrys) solid var(--color-braz);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumb svg {
+  width: 66px;
+}
+
+.flame {
+  fill: var(--color-pomarancz);
+  stroke: var(--color-braz);
+}
+
+.info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.name {
+  min-width: 0;
+  font-size: 19px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.price {
+  flex-shrink: 0;
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.variant {
+  font-size: 15px;
+  color: var(--color-braz-miekki);
+}
+
+.soldOut {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-terakota);
+}
+
+.actions {
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border: var(--obrys) solid var(--color-braz);
+  border-radius: var(--radius-pill);
+  background: var(--color-krem);
+}
+
+.stepper button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font: 800 18px var(--font-sans);
+  color: var(--color-braz);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stepper span {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.linkBtn {
+  padding: var(--space-2) 0;
+  border: none;
+  background: none;
+  font: 700 15px var(--font-sans);
+  color: var(--color-braz);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Footer */
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px var(--space-4) var(--space-4);
+  border-top: var(--obrys) solid var(--color-braz);
+}
+
+.sumRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sum {
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--color-braz-miekki);
+}
+
+.checkout {
+  min-height: 58px;
+  margin-top: var(--space-2);
+  font-size: 17px;
+}
+
+.continue {
+  padding: var(--space-2);
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Empty cart */
+.empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+}
+
+.emptyPot {
+  width: 120px;
+}
+
+.smoke {
+  fill: none;
+  stroke: var(--color-braz-miekki);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 30px;
+}
+
+.emptyBtn {
+  margin-top: var(--space-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stepper button:not(:disabled):hover {
+    background: var(--color-krem-ciemny);
+  }
+
+  .linkBtn:hover {
+    color: var(--color-terakota);
+  }
+}
+
+/* Phone: bottom sheet (Tel-Koszyk). */
+@media (max-width: 760px) {
+  .drawer {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    max-height: 92%;
+    border-left: none;
+    border-top: var(--obrys) solid var(--color-braz);
+    border-radius: 28px 28px 0 0;
+  }
+
+  .panel {
+    height: auto;
+    max-height: 92svh;
+  }
+
+  .handle {
+    display: block;
+    align-self: center;
+    width: 44px;
+    height: 5px;
+    margin: 10px 0 2px;
+    border-radius: var(--radius-pill);
+    background: var(--color-krem-ciemny);
+  }
+
+  .head {
+    padding: 6px var(--space-3) 14px;
+    border-bottom: none;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .count {
+    font-size: 18px;
+  }
+
+  .shipping {
+    padding: 0 var(--space-3) 14px;
+    background: none;
+  }
+
+  .shippingMsg {
+    margin-bottom: var(--space-2);
+    font-size: 14px;
+  }
+
+  .track {
+    height: 12px;
+    background: var(--color-krem-jasny);
+  }
+
+  .items {
+    min-height: 0;
+    padding: var(--space-1) var(--space-3) 12px;
+    gap: 10px;
+  }
+
+  .item {
+    gap: 12px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .thumb {
+    flex-basis: 72px;
+    height: 72px;
+    border-radius: 12px;
+  }
+
+  .thumb svg {
+    width: 54px;
+  }
+
+  .info {
+    gap: 0;
+  }
+
+  .row {
+    gap: var(--space-2);
+  }
+
+  .name {
+    font-size: 16px;
+  }
+
+  .price {
+    font-size: 15px;
+  }
+
+  .variant,
+  .soldOut {
+    font-size: 14px;
+  }
+
+  .actions {
+    margin-top: 6px;
+  }
+
+  .stepper span {
+    min-width: 26px;
+  }
+
+  .foot {
+    gap: 6px;
+    padding: 14px var(--space-3) calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .foot .muted {
+    font-size: 15px;
+  }
+
+  .checkout {
+    min-height: 54px;
+    margin-top: 6px;
+  }
+
+  .continue {
+    display: none;
+  }
+
+  .empty {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: var(--space-4) var(--space-4) 40px;
+  }
+
+  .emptyPot {
+    width: 96px;
+  }
+
+  .emptyTitle {
+    font-size: 26px;
+  }
+
+  .emptyBtn {
+    align-self: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .drawer[open] {
+    animation: slide 460ms var(--ease-drawer) both;
+  }
+
+  .drawer[open]::backdrop {
+    animation: fade 320ms ease both;
+  }
+
+  .item {
+    animation: itemIn 420ms var(--ease-expo) both;
+    animation-delay: calc(260ms + var(--i) * 70ms);
+  }
+
+  .bar {
+    transition:
+      transform 520ms var(--ease-expo),
+      background-color 300ms ease;
+  }
+
+  .stepper button {
+    transition:
+      background-color 160ms ease,
+      transform 120ms var(--ease-out);
+  }
+
+  .stepper button:active:not(:disabled) {
+    transform: scale(0.88);
+  }
+
+  @media (max-width: 760px) {
+    .drawer[open] {
+      animation: up 480ms var(--ease-drawer) both;
+    }
+
+    .item {
+      animation-name: itemInUp;
+    }
+  }
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes itemInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
