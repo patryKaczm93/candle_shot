@@ -5,6 +5,7 @@ import {
   cartLines,
   freeShippingMessage,
   freeShippingProgress,
+  shippingPriceGrosze,
   subtotalGrosze,
 } from './summary'
 
@@ -109,5 +110,21 @@ describe('subtotal and free shipping', () => {
     expect(freeShippingProgress(20000, 20000)).toEqual({ reached: true, missingGrosze: 0, ratio: 1 })
     expect(freeShippingProgress(25000, 20000).reached).toBe(true)
     expect(freeShippingMessage(freeShippingProgress(25000, 20000))).toBe('Masz darmową dostawę!')
+  })
+})
+
+describe('shippingPriceGrosze', () => {
+  const info = {
+    methods: [{ id: 'locker' as const, name: 'Paczkomat InPost', price_grosze: 1400 }],
+    free_shipping_threshold_grosze: 20000,
+  }
+
+  it('is the method price below the threshold and free from it', () => {
+    expect(shippingPriceGrosze(info, 'locker', 19999)).toBe(1400)
+    expect(shippingPriceGrosze(info, 'locker', 20000)).toBe(0)
+  })
+
+  it('is unknown (not free) for a method missing from the API', () => {
+    expect(shippingPriceGrosze(info, 'courier', 25000)).toBeNull()
   })
 })

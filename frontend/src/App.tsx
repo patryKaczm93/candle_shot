@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router'
 import { Layout } from './components/Layout'
+import { CheckoutPage } from './pages/CheckoutPage'
 import { DesignPage } from './pages/DesignPage'
 import { HomePage } from './pages/HomePage'
 import { DeliveryReturnsPage, PrivacyPage, TermsPage } from './pages/legal'
@@ -14,6 +15,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="sklep" element={<ShopPage />} />
         <Route path="sklep/:slug" element={<ProductPage />} />
+        <Route path="zamowienie" element={<CheckoutPage />} />
         <Route path="regulamin" element={<TermsPage />} />
         <Route path="polityka-prywatnosci" element={<PrivacyPage />} />
         <Route path="dostawa-i-zwroty" element={<DeliveryReturnsPage />} />

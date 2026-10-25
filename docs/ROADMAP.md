@@ -35,7 +35,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 5 — Checkout ze Stripe (lokalnie)
 
 - [x] **5.1 `POST /api/checkout`.** Walidacja, ceny z bazy, rezerwacja stanu, zapis `pending`, Checkout Session. Gotowe, gdy: test z podstawionym klientem Stripe sprawdza, że cena z requestu jest ignorowana.
-- [ ] **5.2 Formularz zamówienia.** Kontakt, Paczkomat (InPost Geowidget) albo adres kuriera, NIP, zgoda. Gotowe, gdy: błędy walidacji wyświetlają się przy polach.
+- [x] **5.2 Formularz zamówienia.** Kontakt, Paczkomat (InPost Geowidget) albo adres kuriera, NIP, zgoda. Gotowe, gdy: błędy walidacji wyświetlają się przy polach.
 - [ ] **5.3 Przekierowanie i powrót.** Redirect na Stripe, strony `/dziekujemy` i `/zamowienie/anulowane`. Gotowe, gdy: płatność kartą `4242 4242 4242 4242` kończy się na stronie podziękowania.
 
 ## Faza 6 — Webhooki i cykl życia zamówienia
@@ -87,5 +87,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Nuty zapachowe „Góra / Serce / Baza” z makiety Produkt — wymagają nowych kolumn w `products` (migracja) i pól w API/panelu.
 - Toast „Dodano do koszyka” z linkiem „Koszyk →” (makieta, DESIGN.md) — karta produktu ma na razie tylko „Dodano” na przycisku; link powinien otwierać szufladę (`useCart().open`).
 - Szuflada: animacje z makiety, których nie ma w 4.2 — wyjazd pozycji po „Usuń” (`itemOut`), „przewijanie” liczników (`.roll`) i zmiana komunikatu dostawy (`.swap`).
-- Do 5.2: `POST /api/checkout` zwraca `detail` jako tekst (422 z naszych reguł, 502, 503), listę błędów Pydantic (422 walidacji pól, `loc` wskazuje pole) albo obiekt `{message, unavailable_variant_ids}` (409); formularz musi obsłużyć wszystkie trzy. Przycisk „Zamawiam i płacę” blokować po kliknięciu (każde kliknięcie to nowe zamówienie i rezerwacja).
 - Do 6.2/9.1 (z przeglądu 5.1): limit żądań `POST /api/checkout` (na IP i/lub liczba `pending` na e-mail) — inaczej można zarezerwować cały magazyn na 31 min i powtarzać. Do czasu 6.2 porzucone zamówienia w ogóle nie oddają stanu.
+- Mapa Paczkomatów (InPost Geowidget): wymaga tokenu z panelu InPost (zmienna `VITE_INPOST_GEOWIDGET_TOKEN`). Podmiana tylko w `frontend/src/components/LockerPicker.tsx` — te same propsy, przycisk „Wybierz na mapie” jak w makiecie, `onChange(point.name)` z wybranego punktu. Na razie klient wpisuje kod Paczkomatu.
+- Ekran zamówienia: uproszczony nagłówek z makiety (logo + „Bezpieczne zamówienie”, bez nawigacji i stopki) — dziś `/zamowienie` używa zwykłego `Layout`.
+- Do 9.1 (z przeglądu 5.2): klucz idempotencji z przeglądarki w `POST /api/checkout` (np. UUID na próbę zamówienia), żeby ponowienie po zerwanym połączeniu nie tworzyło drugiego zamówienia i drugiej rezerwacji.

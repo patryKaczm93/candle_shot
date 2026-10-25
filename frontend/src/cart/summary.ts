@@ -1,4 +1,4 @@
-import type { Availability, Product } from '../api'
+import type { Availability, Product, ShippingInfo } from '../api'
 import { formatPrice } from '../format'
 import { maxQty } from '../productPage'
 import type { Cart } from './cart'
@@ -86,4 +86,15 @@ export function freeShippingProgress(subtotal: number, threshold: number): FreeS
 export function freeShippingMessage(progress: FreeShippingProgress): string {
   if (progress.reached) return 'Masz darmową dostawę!'
   return `Brakuje ${formatPrice(progress.missingGrosze)} do darmowej dostawy`
+}
+
+/** Shipping shown in the order summary; the backend computes the amount actually charged. */
+export function shippingPriceGrosze(
+  info: ShippingInfo,
+  method: 'locker' | 'courier',
+  subtotal: number,
+): number | null {
+  const price = info.methods.find((m) => m.id === method)?.price_grosze
+  if (price === undefined) return null
+  return freeShippingProgress(subtotal, info.free_shipping_threshold_grosze).reached ? 0 : price
 }

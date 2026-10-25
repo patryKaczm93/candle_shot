@@ -1,0 +1,64 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--text-label-size);
+  font-weight: 700;
+}
+
+.field input {
+  min-width: 0;
+  min-height: 54px;
+  padding: 0 var(--space-3);
+  border: var(--obrys) solid var(--color-braz);
+  border-radius: 14px;
+  background: var(--color-krem);
+  color: var(--color-braz);
+  font: 600 16px var(--font-sans);
+}
+
+.field input:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--color-pomarancz);
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--color-terakota);
+  box-shadow: 0 0 0 3px #F3D3CB;
+}
+
+.field input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px var(--color-pomarancz);
+}
+
+.error {
+  color: var(--color-terakota);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hint {
+  color: var(--color-braz-miekki);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .field input {
+    transition:
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .error {
+    animation: reveal 300ms var(--ease-out) both;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

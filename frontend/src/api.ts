@@ -60,3 +60,50 @@ export function fetchProduct(slug: string, signal?: AbortSignal): Promise<Produc
 export function fetchShipping(signal?: AbortSignal): Promise<ShippingInfo> {
   return getJson<ShippingInfo>('/api/shipping', signal)
 }
+
+export type CheckoutRequest = {
+  email: string
+  phone: string
+  full_name: string
+  shipping:
+    | { method: 'locker'; locker_id: string }
+    | { method: 'courier'; address_line: string; postal_code: string; city: string }
+  invoice: { nip: string; name: string } | null
+  terms_accepted: boolean
+  items: { variant_id: number; qty: number }[]
+}
+
+/** Error from POST /api/checkout; `detail` is text, a list of field errors (422) or an object (409). */
+export class CheckoutError extends ApiError {
+  readonly detail: unknown
+
+  constructor(status: number, detail: unknown) {
+    super(status, `POST /api/checkout failed with ${status}`)
+    this.detail = detail
+  }
+}
+
+const STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com/'
+const CHECKOUT_TIMEOUT_MS = 30_000
+
+/** Only a Stripe Checkout address may be used for the redirect. */
+export function isStripeCheckoutUrl(url: unknown): url is string {
+  return typeof url === 'string' && url.startsWith(STRIPE_CHECKOUT_ORIGIN)
+}
+
+/** Creates the order and returns the Stripe Checkout URL. Prices are set by the backend. */
+export async function postCheckout(body: CheckoutRequest): Promise<{ url: string }> {
+  const response = await fetch(`${API_URL}/api/checkout`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(CHECKOUT_TIMEOUT_MS),
+  })
+  const data: unknown = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new CheckoutError(response.status, (data as { detail?: unknown } | null)?.detail)
+  }
+  const url = (data as { url?: unknown } | null)?.url
+  if (!isStripeCheckoutUrl(url)) throw new CheckoutError(500, undefined)
+  return { url }
+}
