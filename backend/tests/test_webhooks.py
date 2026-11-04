@@ -1,6 +1,7 @@
 import json
 import time
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -21,6 +22,10 @@ SESSION_ID = "cs_test_webhook"
 
 COMPLETED = "checkout.session.completed"
 ASYNC_SUCCEEDED = "checkout.session.async_payment_succeeded"
+ASYNC_FAILED = "checkout.session.async_payment_failed"
+EXPIRED = "checkout.session.expired"
+# make_order's default: one item at 49,00 zł + 12,99 zł shipping.
+DEFAULT_TOTAL = 6199
 
 
 @pytest.fixture(autouse=True)
@@ -45,6 +50,8 @@ def make_event(
     event_id: str = "evt_1",
     session_id: str = SESSION_ID,
     payment_status: str = "paid",
+    amount_total: int = DEFAULT_TOTAL,
+    currency: str = "pln",
 ) -> dict[str, Any]:
     return {
         "id": event_id,
@@ -56,6 +63,8 @@ def make_event(
                 "object": "checkout.session",
                 "payment_status": payment_status,
                 "payment_intent": "pi_test_1",
+                "amount_total": amount_total,
+                "currency": currency,
             }
         },
     }
@@ -80,6 +89,19 @@ def create_order(sessions: sessionmaker[Session], **overrides: Any) -> None:
 def load_order(sessions: sessionmaker[Session]) -> Order:
     with sessions() as db:
         return db.scalars(select(Order).where(Order.stripe_session_id == SESSION_ID)).one()
+
+
+def variant_stock(sessions: sessionmaker[Session], variant_id: int) -> int:
+    with sessions() as db:
+        return db.get(Variant, variant_id).stock
+
+
+def create_reserved_order(sessions: sessionmaker[Session], **overrides: Any) -> tuple[int, int]:
+    """Order for 2 + 3 pieces of two variants, whose stock is already reduced to 1 and 0."""
+    with sessions.begin() as db:
+        first, second = make_variant(db, stock=1), make_variant(db, stock=0)
+        make_order(db, items=[(first, 2), (second, 3)], stripe_session_id=SESSION_ID, **overrides)
+        return first.id, second.id
 
 
 def event_count(sessions: sessionmaker[Session]) -> int:
@@ -115,10 +137,10 @@ def test_webhook_paid_does_not_change_reserved_stock(
         make_order(db, items=[(variant, 2)], stripe_session_id=SESSION_ID)
         variant_id = variant.id
 
-    post_signed(webhook_client, make_event())
+    post_signed(webhook_client, make_event(amount_total=11099))
 
-    with sessions() as db:
-        assert db.get(Variant, variant_id).stock == 3
+    assert load_order(sessions).status == "paid"
+    assert variant_stock(sessions, variant_id) == 3
 
 
 def test_webhook_completed_unpaid_waits_for_async_success(
@@ -275,7 +297,18 @@ def test_webhook_paid_event_does_not_revive_closed_order(
     order = load_order(sessions)
     assert order.status == status
     assert order.paid_at is None
-    assert order.stripe_payment_intent is None
+    # The seller needs it to find and refund a payment that arrived too late.
+    assert order.stripe_payment_intent == "pi_test_1"
+
+
+def test_webhook_late_payment_keeps_original_payment_intent(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    create_order(sessions, status="refunded", stripe_payment_intent="pi_original")
+
+    post_signed(webhook_client, make_event())
+
+    assert load_order(sessions).stripe_payment_intent == "pi_original"
 
 
 def test_webhook_second_paid_event_keeps_first_paid_at(
@@ -308,8 +341,168 @@ def test_webhook_unhandled_type_is_not_recorded(
 ) -> None:
     create_order(sessions)
 
-    response = post_signed(webhook_client, make_event("checkout.session.expired"))
+    response = post_signed(webhook_client, make_event("payment_intent.created"))
 
     assert response.status_code == 200
     assert load_order(sessions).status == "pending"
     assert event_count(sessions) == 0
+
+
+@pytest.mark.parametrize(
+    ("overrides", "paid_event"),
+    [
+        ({"amount_total": 1}, COMPLETED),
+        ({"currency": "eur"}, COMPLETED),
+        ({"amount_total": 1}, ASYNC_SUCCEEDED),
+    ],
+)
+def test_webhook_payment_not_matching_order_keeps_it_pending(
+    webhook_client: TestClient,
+    sessions: sessionmaker[Session],
+    overrides: dict[str, Any],
+    paid_event: str,
+) -> None:
+    create_order(sessions)
+
+    response = post_signed(webhook_client, make_event(paid_event, **overrides))
+
+    assert response.status_code == 200
+    order = load_order(sessions)
+    assert order.status == "pending"
+    assert order.paid_at is None
+    assert order.stripe_payment_intent == "pi_test_1"
+
+
+# --- Cancelling orders and returning stock ----------------------------------------------------
+
+
+@pytest.mark.parametrize("event_type", [EXPIRED, ASYNC_FAILED])
+def test_webhook_session_closed_cancels_order_and_returns_stock(
+    webhook_client: TestClient, sessions: sessionmaker[Session], event_type: str
+) -> None:
+    first_id, second_id = create_reserved_order(sessions)
+
+    response = post_signed(webhook_client, make_event(event_type, payment_status="unpaid"))
+
+    assert response.status_code == 200
+    order = load_order(sessions)
+    assert order.status == "cancelled"
+    assert order.paid_at is None
+    assert variant_stock(sessions, first_id) == 3
+    assert variant_stock(sessions, second_id) == 3
+    assert event_count(sessions) == 1
+
+
+def test_webhook_expired_adds_to_current_stock(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    first_id, _ = create_reserved_order(sessions)
+    # A new batch arrives while the session is open: it must not be overwritten.
+    with sessions.begin() as db:
+        db.get(Variant, first_id).stock = 10
+
+    post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+
+    assert variant_stock(sessions, first_id) == 12
+
+
+def test_webhook_same_expired_event_twice_returns_stock_once(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    first_id, _ = create_reserved_order(sessions)
+
+    post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+    response = post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+
+    assert response.status_code == 200
+    assert variant_stock(sessions, first_id) == 3
+    assert event_count(sessions) == 1
+
+
+def test_webhook_two_closing_events_return_stock_once(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    first_id, _ = create_reserved_order(sessions)
+
+    post_signed(webhook_client, make_event(ASYNC_FAILED, payment_status="unpaid"))
+    post_signed(webhook_client, make_event(EXPIRED, event_id="evt_2", payment_status="unpaid"))
+
+    assert variant_stock(sessions, first_id) == 3
+    assert event_count(sessions) == 2
+
+
+@pytest.mark.parametrize("status", ["paid", "refunded"])
+def test_webhook_expired_does_not_touch_settled_order(
+    webhook_client: TestClient, sessions: sessionmaker[Session], status: str
+) -> None:
+    first_id, _ = create_reserved_order(sessions, status=status, paid_at=datetime.now(UTC))
+
+    response = post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+
+    assert response.status_code == 200
+    assert load_order(sessions).status == status
+    assert variant_stock(sessions, first_id) == 1
+
+
+def test_webhook_payment_after_expiry_keeps_order_cancelled(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    first_id, _ = create_reserved_order(sessions)
+    post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+
+    # The amount matches, so only the order's status can keep it from becoming paid.
+    response = post_signed(webhook_client, make_event(event_id="evt_2", amount_total=25799))
+
+    assert response.status_code == 200
+    assert load_order(sessions).status == "cancelled"
+    assert variant_stock(sessions, first_id) == 3
+
+
+def test_webhook_expired_with_deleted_variant_returns_remaining_stock(
+    webhook_client: TestClient, sessions: sessionmaker[Session]
+) -> None:
+    first_id, second_id = create_reserved_order(sessions)
+    with sessions.begin() as db:
+        db.delete(db.get(Variant, second_id))
+
+    response = post_signed(webhook_client, make_event(EXPIRED, payment_status="unpaid"))
+
+    assert response.status_code == 200
+    assert load_order(sessions).status == "cancelled"
+    assert variant_stock(sessions, first_id) == 3
+
+
+def test_webhook_failure_during_cancel_saves_nothing_and_retry_succeeds(
+    webhook_client: TestClient,
+    sessions: sessionmaker[Session],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_id, second_id = create_reserved_order(sessions)
+    event = make_event(EXPIRED, payment_status="unpaid")
+    variant_updates = 0
+
+    def update_failing_on_second_variant(table: Any) -> Any:
+        nonlocal variant_updates
+        if table is Variant:
+            variant_updates += 1
+            if variant_updates == 2:
+                raise RuntimeError("database went away")
+        return update(table)
+
+    # Fails after the status change and the first variant's return: all of it must be undone,
+    # or the retry would find no pending order and the second variant's stock would be lost.
+    with monkeypatch.context() as patch:
+        patch.setattr(webhooks, "update", update_failing_on_second_variant)
+        response = post_signed(webhook_client, event)
+
+    assert response.status_code == 500
+    assert variant_updates == 2
+    assert load_order(sessions).status == "pending"
+    assert variant_stock(sessions, first_id) == 1
+    assert variant_stock(sessions, second_id) == 0
+    assert event_count(sessions) == 0
+
+    assert post_signed(webhook_client, event).status_code == 200
+    assert load_order(sessions).status == "cancelled"
+    assert variant_stock(sessions, first_id) == 3
+    assert variant_stock(sessions, second_id) == 3

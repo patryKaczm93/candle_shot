@@ -41,7 +41,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 6 — Webhooki i cykl życia zamówienia
 
 - [x] **6.1 Endpoint webhooka** z weryfikacją podpisu i tabelą `stripe_events`. Gotowe, gdy: `stripe trigger checkout.session.completed` zmienia status, a to samo zdarzenie drugi raz nic nie robi.
-- [ ] **6.2 Wygasanie i nieudane płatności** ze zwrotem stanu. Gotowe, gdy: test pokazuje powrót stanu po wygaśnięciu sesji.
+- [x] **6.2 Wygasanie i nieudane płatności** ze zwrotem stanu. Gotowe, gdy: test pokazuje powrót stanu po wygaśnięciu sesji.
 - [ ] **6.3 E-maile** dla klienta i dla sprzedawcy (Resend lub SMTP). Gotowe, gdy: po testowej płatności przychodzą oba.
 - [ ] **6.4 Status na stronie podziękowania.** `GET /api/orders/by-session/{id}` + odpytywanie co 2 s. Gotowe, gdy: strona pokazuje numer PM-XXXX.
 
@@ -92,5 +92,5 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Ekran zamówienia: uproszczony nagłówek z makiety (logo + „Bezpieczne zamówienie”, bez nawigacji i stopki) — dziś `/zamowienie` używa zwykłego `Layout`.
 - Do 9.1 (z przeglądu 5.2): klucz idempotencji z przeglądarki w `POST /api/checkout` (np. UUID na próbę zamówienia), żeby ponowienie po zerwanym połączeniu nie tworzyło drugiego zamówienia i drugiej rezerwacji.
 - Do 6.2 (z 5.3): po „Anuluj” na stronie Stripe zamówienie `pending` trzyma rezerwację do wygaśnięcia sesji (31 min). Przy ostatniej sztuce klient, który wraca do zamówienia, blokuje sam siebie (409). Rozważ wygaszenie sesji (`sessions.expire`) przy wejściu na `/zamowienie/anulowane?session_id=…` — webhook `checkout.session.expired` odda wtedy stan od razu.
-- Do 6.2 (z przeglądu 6.1): w `_mark_paid` porównać `session.amount_total` i walutę z zamówieniem; przy niezgodności log błędu i bez oznaczania jako `paid`. Przy dodaniu kodów rabatowych trzeba to dostosować.
-- Do 6.3 (z przeglądu 6.1): płatność do sesji bez zamówienia albo do zamówienia `cancelled`/`refunded` zostawia dziś tylko `logger.error`, a Stripe już nie ponowi. To powinno wysyłać e-mail do sprzedawcy.
+- Przy dodaniu kodów rabatowych: `_mark_paid` porównuje `session.amount_total` z `total_grosze` zamówienia, więc płatność z rabatem zostanie zignorowana. Trzeba to dostosować razem z `_check_session_total`.
+- Do 6.3 (z przeglądu 6.1): płatność do sesji bez zamówienia, do zamówienia `cancelled`/`refunded` albo z niezgodną kwotą lub walutą zostawia dziś tylko `logger.error` i `stripe_payment_intent` na zamówieniu, a Stripe już nie ponowi. Przy niezgodnej kwocie zamówienie zostaje `pending` z zarezerwowanym stanem. To powinno wysyłać e-mail do sprzedawcy.
