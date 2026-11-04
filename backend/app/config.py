@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     # whsec_... from `stripe listen` locally; without it every webhook is rejected.
     stripe_webhook_secret: str = ""
+    # Without these the shop still works, but e-mails are skipped with a warning in the log.
+    resend_api_key: str = ""
+    mail_from: str = ""
+    shop_owner_email: str = ""
 
 
 settings = Settings()

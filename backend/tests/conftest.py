@@ -65,6 +65,19 @@ def no_real_stripe() -> Iterator[None]:
         yield
 
 
+@pytest.fixture(scope="session", autouse=True)
+def no_real_emails() -> Iterator[None]:
+    """Without a key, e-mails are skipped instead of reaching Resend with the key from .env."""
+
+    def refuse_network(*_: Any, **__: Any) -> None:
+        raise AssertionError("A test tried to call a real HTTP API")
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(settings, "resend_api_key", "")
+        patch.setattr("urllib.request.urlopen", refuse_network)
+        yield
+
+
 @pytest.fixture
 def db(engine: Engine) -> Iterator[Session]:
     """Session inside a transaction that is rolled back after each test."""

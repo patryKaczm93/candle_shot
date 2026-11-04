@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Callable
+from functools import partial
 
 import stripe
 from sqlalchemy import func, select, update
@@ -7,8 +9,11 @@ from sqlalchemy.orm import Session
 
 import app.db
 from app.models import Order, OrderItem, StripeEvent, Variant
+from app.services import emails
 
 logger = logging.getLogger(__name__)
+
+SendEmail = Callable[[], None]
 
 # Stripe sends currency codes in lowercase; checkout always creates sessions in PLN.
 ORDER_CURRENCY = "pln"
@@ -28,11 +33,13 @@ def handle_event(event: stripe.Event) -> None:
     """Applies a verified Stripe event exactly once.
 
     The event record and the status change commit together: if anything fails, nothing is
-    saved, the endpoint returns 500 and Stripe's retry starts over.
+    saved, the endpoint returns 500 and Stripe's retry starts over. E-mails go out only after
+    the commit, so a duplicate or rolled-back event never sends any.
     """
     if event.type not in HANDLED_EVENTS:
         return
 
+    send_email: SendEmail | None = None
     with app.db.SessionLocal.begin() as db:
         if not _record_event(db, event):
             logger.info("Stripe event %s was already processed", event.id)
@@ -42,7 +49,10 @@ def handle_event(event: stripe.Event) -> None:
             _cancel_order(db, session)
         # completed with "unpaid" (e.g. a delayed method): wait for async_payment_succeeded.
         elif session.payment_status == "paid":
-            _mark_paid(db, session)
+            send_email = _mark_paid(db, session)
+
+    if send_email:
+        send_email()
 
 
 def _record_event(db: Session, event: stripe.Event) -> bool:
@@ -56,7 +66,7 @@ def _record_event(db: Session, event: stripe.Event) -> bool:
     return inserted_id is not None
 
 
-def _mark_paid(db: Session, session: stripe.checkout.Session) -> None:
+def _mark_paid(db: Session, session: stripe.checkout.Session) -> SendEmail | None:
     if session.currency == ORDER_CURRENCY:
         result = db.execute(
             update(Order)
@@ -68,21 +78,28 @@ def _mark_paid(db: Session, session: stripe.checkout.Session) -> None:
             .values(status="paid", paid_at=func.now(), stripe_payment_intent=session.payment_intent)
         )
         if result.rowcount == 1:
-            return
+            return partial(emails.send_order_paid, session.id)
 
-    _note_ignored_payment(db, session)
+    return _note_ignored_payment(db, session)
 
 
-def _note_ignored_payment(db: Session, session: stripe.checkout.Session) -> None:
-    """The event stays recorded, so Stripe will not retry: this is the only trace of the payment."""
+def _note_ignored_payment(db: Session, session: stripe.checkout.Session) -> SendEmail | None:
+    """The event stays recorded, so Stripe will not retry: the seller must hear about it."""
     order = db.scalar(select(Order).where(Order.stripe_session_id == session.id))
     if order is None:
         # Orphaned session or `stripe trigger`: a retry would not find an order either.
-        logger.error("Payment for session %s has no matching order", session.id)
-        return
+        logger.error(
+            "Payment %s for session %s has no matching order", session.payment_intent, session.id
+        )
+        return partial(
+            emails.send_seller_alert,
+            f"Stripe zgłosił płatność {session.payment_intent} za sesję {session.id}, "
+            "ale w sklepie nie ma takiego zamówienia. Sprawdź ją w panelu Stripe "
+            "i w razie potrzeby zwróć pieniądze.",
+        )
     if order.status == "paid":
         logger.info("Order %s is already paid", order.number)
-        return
+        return None
 
     # Lets the seller find the payment and refund it by hand.
     if order.stripe_payment_intent is None:
@@ -95,6 +112,13 @@ def _note_ignored_payment(db: Session, session: stripe.checkout.Session) -> None
         session.amount_total,
         session.currency,
         order.total_grosze,
+    )
+    return partial(
+        emails.send_seller_alert,
+        f"Płatność {session.payment_intent} za zamówienie {order.number} nie została przyjęta: "
+        f"zamówienie ma status {order.status}, zapłacono {session.amount_total} "
+        f"{session.currency} (w groszach), a suma zamówienia to {order.total_grosze} groszy. "
+        "Sprawdź ją w panelu Stripe i w razie potrzeby zwróć pieniądze.",
     )
 
 
