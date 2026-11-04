@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     # Test key (sk_test_...) locally; checkout refuses to start without it.
     stripe_secret_key: str = ""
+    # whsec_... from `stripe listen` locally; without it every webhook is rejected.
+    stripe_webhook_secret: str = ""
 
 
 settings = Settings()
