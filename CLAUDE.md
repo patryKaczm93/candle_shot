@@ -48,5 +48,6 @@ Stripe lokalnie:
 - Najpierw krótki plan, potem kod, potem testy. Historyjka jest gotowa, gdy spełnia kryterium „Gotowe, gdy” i testy przechodzą.
 - Po zmianach w płatnościach, zamówieniach lub webhookach uruchom agenta `payment-reviewer`.
 - Commity małe, wiadomości po angielsku w trybie rozkazującym, z numerem historyjki: `feat(5.1): create checkout session`.
-- Nie rób `git push` bez mojej prośby.
+- Nie rób `git push` bez mojej prośby. Po skończonej historyjce zaproponuj „commit i push na `develop`” jako jeden krok (`develop` niczego nie wdraża). Nigdy push na `main` bez wyraźnej prośby.
+- Windows: `uvicorn --reload` potrafi zostawić stary proces na :8000 ze starym kodem. Przed testem end-to-end po zmianach w backendzie zabij wszystkie procesy na :8000 i uruchom serwer od nowa.
 - Komunikuj się ze mną po polsku. Kod, nazwy i komentarze w kodzie po angielsku; teksty widoczne dla klienta po polsku.
