@@ -53,11 +53,11 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 8 — Wdrożenie
 
-- [ ] **8.1 Domena i DNS w Cloudflare.** Gotowe, gdy: domena wskazuje na Pages, a `api.` (CNAME) na Railway.
-- [ ] **8.2 Frontend na Cloudflare Pages** z buildem z `main` i `VITE_API_URL`. Gotowe, gdy: push wdraża stronę w ok. 1 minutę.
-- [ ] **8.3 Projekt na Railway:** usługa API (root `backend/`), PostgreSQL, zmienne środowiskowe, usypianie wyłączone, limit wydatków. Gotowe, gdy: `https://api.twojadomena.pl/api/health` zwraca ok.
-- [ ] **8.4 Migracje przy wdrożeniu:** `alembic upgrade head` jako pre-deploy. Gotowe, gdy: nowa migracja wchodzi sama po pushu.
-- [ ] **8.5 Kopie i monitoring.** Backups na Railway, GitHub Actions z `pg_dump` do R2, UptimeRobot. Gotowe, gdy: baza odtworzona z kopii w lokalnym Dockerze.
+- [ ] **8.1 Obrazy produkcyjne.** `backend/Dockerfile` (uv, uvicorn), obraz Caddy z buildem frontendu (multi-stage), `Caddyfile` (`/api/*` → API, reszta → SPA z fallbackiem na `index.html`), `docker-compose.prod.yml` (caddy, api, db bez wystawionych portów, `restart: unless-stopped`). Gotowe, gdy: lokalnie `docker compose -f docker-compose.prod.yml up` serwuje sklep i `/api/health` na :80.
+- [ ] **8.2 VM i zabezpieczenia.** Ubuntu LTS, użytkownik bez roota, SSH tylko kluczem, firewall (22/80/443), `unattended-upgrades`, Docker. Gotowe, gdy: logowanie hasłem i jako root jest odrzucane, a z zewnątrz otwarte są tylko 22/80/443.
+- [ ] **8.3 Domena i HTTPS.** Rekord A domeny na IP VM, Caddy z Let's Encrypt, plik `.env` na serwerze (poza repo), webhook Stripe na `https://<domena>/api/webhooks/stripe`. Gotowe, gdy: `https://<domena>/api/health` zwraca ok, a sklep działa pod tą samą domeną.
+- [ ] **8.4 Wdrożenie i migracje.** `deploy.sh`: `git pull` z `main`, `docker compose up -d --build`; `alembic upgrade head` przed startem API. Gotowe, gdy: nowa migracja wchodzi sama przy wdrożeniu.
+- [ ] **8.5 Kopie i monitoring.** Codzienny `pg_dump` z crona, kopia poza VM z rotacją, UptimeRobot na `/api/health`. Gotowe, gdy: baza odtworzona z kopii w lokalnym Dockerze.
 
 ## Faza 9 — Testy płatności i start
 
@@ -95,4 +95,4 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 6.2 (z 5.3): po „Anuluj” na stronie Stripe zamówienie `pending` trzyma rezerwację do wygaśnięcia sesji (31 min). Przy ostatniej sztuce klient, który wraca do zamówienia, blokuje sam siebie (409). Rozważ wygaszenie sesji (`sessions.expire`) przy wejściu na `/zamowienie/anulowane?session_id=…` — webhook `checkout.session.expired` odda wtedy stan od razu.
 - Przy dodaniu kodów rabatowych: `_mark_paid` porównuje `session.amount_total` z `total_grosze` zamówienia, więc płatność z rabatem zostanie zignorowana. Trzeba to dostosować razem z `_check_session_total`.
 - Do 7.2 (z przeglądu 6.3): zdarzenie płatności dla zamówienia `shipped` wysłałoby fałszywy alert „nie została przyjęta”. Stripe dziś tak nie robi, ale `_note_ignored_payment` powinno traktować `shipped` jak `paid`.
-- Do 8.3 (z 6.3): ustawić na Railway `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.
+- Do 8.3 (z 6.3): ustawić w `.env` na VM `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.

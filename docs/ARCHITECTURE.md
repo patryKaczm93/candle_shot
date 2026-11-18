@@ -6,15 +6,18 @@ Pełna wersja z diagramem: dokument „Pachnie miło — architektura i roadmapa
 
 | Element | Wybór | Uwagi |
 | --- | --- | --- |
-| Frontend | React + Vite + TS na Cloudflare Pages (root `frontend/`) | statyczny build z gałęzi `main`, zmienna `VITE_API_URL` |
-| API | FastAPI na Railway (root `backend/`) | domena `api.twojadomena.pl`, usypianie WYŁĄCZONE, health check `/api/health` |
-| Baza | PostgreSQL na Railway | sieć prywatna Railway, `DATABASE_URL` ze zmiennych; lokalnie Docker |
-| Płatności | Stripe Checkout (hostowany) | BLIK, Przelewy24, karta — włączane w panelu Stripe |
+| Serwer | Jedna VM z Linuksem (Ubuntu LTS), `docker compose` z `docker-compose.prod.yml` | SSH tylko kluczem, firewall: 22/80/443, automatyczne aktualizacje bezpieczeństwa, `restart: unless-stopped` |
+| Reverse proxy | Caddy | HTTPS z Let's Encrypt, serwuje statyczny build frontendu (fallback SPA na `index.html`), `/api/*` → API |
+| Frontend | React + Vite + TS (root `frontend/`) | statyczny build w obrazie Caddy; na produkcji `VITE_API_URL` puste (ta sama domena) |
+| API | FastAPI w kontenerze (root `backend/`) | dostępne tylko przez Caddy, health check `/api/health`, `alembic upgrade head` przed startem |
+| Baza | PostgreSQL w kontenerze | dane na wolumenie, port niewystawiony na zewnątrz, `DATABASE_URL` ze zmiennych; lokalnie Docker |
+| Płatności | Stripe Checkout (hostowany) | BLIK, Przelewy24, karta — włączane w panelu Stripe; webhook na `https://<domena>/api/webhooks/stripe` |
 | E-maile | Resend albo SMTP | po zmianie statusu na `paid` i `shipped` |
-| Kopie | Backups na Railway + cotygodniowy `pg_dump` do Cloudflare R2 (GitHub Actions) | |
+| Kopie | Codzienny `pg_dump` z crona na VM, kopia poza VM (np. Cloudflare R2 albo Storage Box) z rotacją | opcjonalnie snapshoty VM u dostawcy |
 | Monitoring | UptimeRobot na `/api/health` co 5 min | |
+| Wdrożenie | `deploy.sh` na VM: `git pull` z `main`, `docker compose up -d --build` | |
 
-Przeglądarka → Cloudflare Pages (pliki statyczne). Przeglądarka → API (HTTPS, CORS tylko dla domeny sklepu). API → Stripe (tworzy sesję). Stripe → API (webhook). Przeglądarka → Stripe (przekierowanie) → `/dziekujemy`.
+Przeglądarka → Caddy na VM (HTTPS, jedna domena): pliki statyczne albo `/api/*` → API → PostgreSQL. API → Stripe (tworzy sesję). Stripe → API (webhook). Przeglądarka → Stripe (przekierowanie) → `/dziekujemy`. CORS potrzebny tylko w dev (Vite :5173 → API :8000).
 
 ## Przepływ zamówienia
 

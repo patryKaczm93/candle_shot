@@ -1,6 +1,6 @@
 # Pachnie miło
 
-Sklep z ręcznie robionymi świeczkami. FastAPI + PostgreSQL (Railway), React (Cloudflare Pages), Stripe Checkout.
+Sklep z ręcznie robionymi świeczkami. FastAPI + PostgreSQL + React, Stripe Checkout. Produkcja: jedna VM z `docker compose` (Caddy + API + PostgreSQL).
 
 - Architektura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Plan pracy: [docs/ROADMAP.md](docs/ROADMAP.md)

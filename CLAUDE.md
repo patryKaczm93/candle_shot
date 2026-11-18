@@ -13,7 +13,7 @@ Design (makieta, system designu, mapa ekranów): `docs/design/DESIGN.md`. Wyglą
 - `backend/` — Python 3.12, FastAPI, SQLAlchemy 2.0, Alembic, PostgreSQL, pytest. Menedżer pakietów: uv.
 - `frontend/` — React + Vite + TypeScript, React Router, Vitest. Statyczny build.
 - Płatności: wyłącznie hostowany Stripe Checkout (BLIK, Przelewy24, karta). Bez Stripe Elements.
-- Hosting: backend + PostgreSQL na Railway (root `backend/`), frontend na Cloudflare Pages (root `frontend/`).
+- Hosting: jedna VM z Linuksem, `docker compose` (Caddy + API + PostgreSQL). Caddy serwuje statyczny build frontendu, przekazuje `/api/*` do API i zapewnia HTTPS. Bez usług PaaS.
 
 ## Polecenia
 
