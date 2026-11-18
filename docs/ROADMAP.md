@@ -42,8 +42,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 - [x] **6.1 Endpoint webhooka** z weryfikacją podpisu i tabelą `stripe_events`. Gotowe, gdy: `stripe trigger checkout.session.completed` zmienia status, a to samo zdarzenie drugi raz nic nie robi.
 - [x] **6.2 Wygasanie i nieudane płatności** ze zwrotem stanu. Gotowe, gdy: test pokazuje powrót stanu po wygaśnięciu sesji.
-- [ ] **6.3 E-maile** dla klienta i dla sprzedawcy (Resend lub SMTP). Gotowe, gdy: po testowej płatności przychodzą oba.
-  - *Stan (2026-11-04):* kod i testy gotowe, na `develop` (`390ba5e`). Wstrzymane do założenia konta Resend. Do zrobienia: w `backend/.env` ustawić `RESEND_API_KEY`, `MAIL_FROM=onboarding@resend.dev` i `SHOP_OWNER_EMAIL`; pełny restart backendu; `stripe listen`; testowe zamówienie. Bez zweryfikowanej domeny Resend wysyła tylko na adres właściciela konta, więc w formularzu zamówienia podać ten adres. Potem odhaczyć 6.3.
+- [x] **6.3 E-maile** dla klienta i dla sprzedawcy (Resend lub SMTP). Gotowe, gdy: po testowej płatności przychodzą oba.
 - [ ] **6.4 Status na stronie podziękowania.** `GET /api/orders/by-session/{id}` + odpytywanie co 2 s. Gotowe, gdy: strona pokazuje numer PM-XXXX.
 
 ## Faza 7 — Panel administracyjny

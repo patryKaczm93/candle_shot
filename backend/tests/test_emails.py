@@ -1,4 +1,7 @@
+import io
 import json
+import urllib.error
+from email.message import Message
 from typing import Any
 
 import pytest
@@ -381,3 +384,50 @@ def test_post_to_resend_sends_expected_request(monkeypatch: pytest.MonkeyPatch) 
         "text": "Treść",
         "reply_to": OWNER,
     }
+
+
+def test_post_to_resend_rejected_raises_reason_without_addresses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(settings, "mail_from", "onboarding@resend.dev")
+    body = json.dumps(
+        {
+            "statusCode": 403,
+            "name": "validation_error",
+            "message": f"You can only send testing emails to your own email address ({OWNER}).",
+        }
+    ).encode()
+
+    def fake_urlopen(request: Any, timeout: float) -> Any:
+        raise urllib.error.HTTPError(
+            request.full_url, 403, "Forbidden", Message(), io.BytesIO(body)
+        )
+
+    monkeypatch.setattr(emails.urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(emails.ResendError) as raised:
+        emails._post_to_resend(CUSTOMER, "Temat", "Treść", OWNER)
+
+    message = str(raised.value)
+    assert "403" in message
+    assert "validation_error" in message
+    assert "own email address" in message
+    assert OWNER not in message
+    assert "<email>" in message
+
+
+def test_send_with_resend_error_without_json_returns_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(settings, "mail_from", "onboarding@resend.dev")
+
+    def fake_urlopen(request: Any, timeout: float) -> Any:
+        raise urllib.error.HTTPError(
+            request.full_url, 502, "Bad Gateway", Message(), io.BytesIO(b"<html>oops</html>")
+        )
+
+    monkeypatch.setattr(emails.urllib.request, "urlopen", fake_urlopen)
+
+    assert emails._send(CUSTOMER, "Temat", "Treść") is False

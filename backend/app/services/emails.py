@@ -1,5 +1,7 @@
 import json
 import logging
+import re
+import urllib.error
 import urllib.request
 
 from sqlalchemy import select
@@ -15,6 +17,13 @@ logger = logging.getLogger(__name__)
 RESEND_URL = "https://api.resend.com/emails"
 # Sent from the webhook, so a slow mail provider must not hold up the reply to Stripe.
 RESEND_TIMEOUT_SECONDS = 5
+# Resend error messages may quote the recipient; addresses stay out of the logs.
+EMAIL_PATTERN = re.compile(r"[^\s@<>()\"']+@[^\s@<>()\"']+")
+
+
+class ResendError(Exception):
+    def __init__(self, status: int, reason: str) -> None:
+        super().__init__(f"Resend returned {status}: {reason}")
 
 
 def send_order_paid(session_id: str) -> None:
@@ -88,8 +97,23 @@ def _post_to_resend(to: str, subject: str, text: str, reply_to: str) -> None:
         },
     )
     # Any status other than 2xx raises HTTPError.
-    with urllib.request.urlopen(request, timeout=RESEND_TIMEOUT_SECONDS):
-        pass
+    try:
+        with urllib.request.urlopen(request, timeout=RESEND_TIMEOUT_SECONDS):
+            pass
+    except urllib.error.HTTPError as error:
+        with error:
+            reason = _resend_reason(error)
+        raise ResendError(error.code, reason) from None
+
+
+def _resend_reason(error: urllib.error.HTTPError) -> str:
+    """Resend's own error name and message, e.g. an unverified domain, without e-mail addresses."""
+    try:
+        data = json.loads(error.read(2000))
+        reason = f"{data.get('name', '')}: {data.get('message', '')}"
+    except Exception:
+        return "no details"
+    return EMAIL_PATTERN.sub("<email>", reason)[:300]
 
 
 def format_pln(grosze: int) -> str:
