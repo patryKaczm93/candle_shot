@@ -1,0 +1,68 @@
+# Production: Caddy (shop + HTTPS) -> API -> PostgreSQL, on one machine.
+# Settings come from .env.prod (copy .env.prod.example); it is never committed.
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: pachnie
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: pachnie
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # No "ports": the database is reachable only from the API on the internal network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pachnie -d pachnie"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://pachnie:${POSTGRES_PASSWORD}@db:5432/pachnie
+      FRONTEND_URL: ${FRONTEND_URL:?set FRONTEND_URL in .env.prod}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_SECRET_KEY: ${ADMIN_SECRET_KEY:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      SHOP_OWNER_EMAIL: ${SHOP_OWNER_EMAIL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    # No "ports": only Caddy talks to the API.
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  caddy:
+    build: ./frontend
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Certificates survive restarts; without this Let's Encrypt would rate-limit us.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

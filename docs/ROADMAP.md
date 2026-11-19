@@ -52,7 +52,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 8 — Wdrożenie
 
-- [ ] **8.1 Obrazy produkcyjne.** `backend/Dockerfile` (uv, uvicorn), obraz Caddy z buildem frontendu (multi-stage), `Caddyfile` (`/api/*` → API, reszta → SPA z fallbackiem na `index.html`), `docker-compose.prod.yml` (caddy, api, db bez wystawionych portów, `restart: unless-stopped`). Gotowe, gdy: lokalnie `docker compose -f docker-compose.prod.yml up` serwuje sklep i `/api/health` na :80.
+- [x] **8.1 Obrazy produkcyjne.** `backend/Dockerfile` (uv, uvicorn), obraz Caddy z buildem frontendu (multi-stage), `Caddyfile` (`/api/*` → API, reszta → SPA z fallbackiem na `index.html`), `docker-compose.prod.yml` (caddy, api, db bez wystawionych portów, `restart: unless-stopped`). Gotowe, gdy: lokalnie `docker compose -f docker-compose.prod.yml up` serwuje sklep i `/api/health` na :80.
 - [ ] **8.2 VM i zabezpieczenia.** Ubuntu LTS, użytkownik bez roota, SSH tylko kluczem, firewall (22/80/443), `unattended-upgrades`, Docker. Gotowe, gdy: logowanie hasłem i jako root jest odrzucane, a z zewnątrz otwarte są tylko 22/80/443.
 - [ ] **8.3 Domena i HTTPS.** Rekord A domeny na IP VM, Caddy z Let's Encrypt, plik `.env` na serwerze (poza repo), webhook Stripe na `https://<domena>/api/webhooks/stripe`. Gotowe, gdy: `https://<domena>/api/health` zwraca ok, a sklep działa pod tą samą domeną.
 - [ ] **8.4 Wdrożenie i migracje.** `deploy.sh`: `git pull` z `main`, `docker compose up -d --build`; `alembic upgrade head` przed startem API. Gotowe, gdy: nowa migracja wchodzi sama przy wdrożeniu.
@@ -96,7 +96,6 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 8.3 (z 6.3): ustawić w `.env` na VM `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.
 - Do 9.1 (z przeglądu 6.4): limit żądań obejmuje też `GET /api/orders/by-session/{id}`; dziś chroni go tylko losowość `session_id` (endpoint zwraca wyłącznie numer i status).
 - Do 8.3 (z przeglądu 6.4): `session_id` jest w ścieżce `/api/orders/by-session/…`, więc trafia do logów dostępu Caddy i uvicorn. Daje dostęp tylko do numeru i statusu, ale logi trzymać krótko i nie udostępniać.
-- Do 8.1 (z 7.1): Caddy musi przekazywać `/admin*` do API (obok `/api/*`), inaczej SPA przechwyci panel. Panel i sklep pod tą samą domeną — ochrona CSRF panelu opiera się tylko na ciasteczku `SameSite=strict`.
 - Do 8.2/8.3 (z przeglądu 7.1): limit prób logowania na `/admin/login` (np. `rate_limit` w Caddy albo fail2ban na wpisach „Rejected admin login from <IP>”). Do tego czasu chroni tylko długie losowe hasło.
 - Panel (z przeglądu 7.1): wyloguj to GET (ktoś może wylogować admina linkiem), wylogowanie nie unieważnia skradzionego ciasteczka przed upływem 8 h (zmiana `ADMIN_SECRET_KEY` unieważnia wszystkie sesje); edycja wariantu pozwala przenieść go do innego produktu — rozważ blokadę pola przy edycji.
 - Z 7.2: cofnięcie „wysłane” (pomyłka w numerze przesyłki) jest dziś możliwe tylko w bazie. Jeśli zdarzy się częściej — akcja „Popraw numer przesyłki” w panelu bez ponownego e-maila.

@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 .env.production
+.env.prod
 !.env.example
 
 # Claude Code — prywatne ustawienia

@@ -1,0 +1,37 @@
+# One domain for everything: the shop, /api/* and /admin* (same site, so the admin
+# cookie's SameSite=strict is the panel's CSRF protection).
+# SITE_ADDRESS: ":80" locally, the domain on the server (Caddy then gets HTTPS by itself).
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle /admin* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+
+		# Vite file names contain a content hash, so they never change.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+
+		# The page itself is always fresh, so a deploy shows up at once.
+		@page not path /assets/*
+		header @page Cache-Control "no-cache"
+
+		# Shop addresses like /sklep/wanilia are routes of the single-page app.
+		try_files {path} /index.html
+		file_server
+	}
+}
