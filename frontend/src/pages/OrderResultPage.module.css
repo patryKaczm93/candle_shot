@@ -33,6 +33,25 @@
   margin: 0 0 var(--space-2);
 }
 
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.number {
+  margin: 0;
+  font-size: 18px;
+}
+
+.number strong {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 @media (max-width: 760px) {
   .page {
     padding-top: var(--space-4);

@@ -61,6 +61,16 @@ export function fetchShipping(signal?: AbortSignal): Promise<ShippingInfo> {
   return getJson<ShippingInfo>('/api/shipping', signal)
 }
 
+export type OrderSummary = {
+  number: string
+  status: 'pending' | 'paid' | 'shipped' | 'cancelled' | 'refunded'
+}
+
+/** Order number and status after returning from Stripe. Read-only; 404 when there is no such order. */
+export function fetchOrderBySession(sessionId: string, signal?: AbortSignal): Promise<OrderSummary> {
+  return getJson<OrderSummary>(`/api/orders/by-session/${encodeURIComponent(sessionId)}`, signal)
+}
+
 export type CheckoutRequest = {
   email: string
   phone: string

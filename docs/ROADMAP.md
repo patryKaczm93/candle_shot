@@ -43,7 +43,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - [x] **6.1 Endpoint webhooka** z weryfikacją podpisu i tabelą `stripe_events`. Gotowe, gdy: `stripe trigger checkout.session.completed` zmienia status, a to samo zdarzenie drugi raz nic nie robi.
 - [x] **6.2 Wygasanie i nieudane płatności** ze zwrotem stanu. Gotowe, gdy: test pokazuje powrót stanu po wygaśnięciu sesji.
 - [x] **6.3 E-maile** dla klienta i dla sprzedawcy (Resend lub SMTP). Gotowe, gdy: po testowej płatności przychodzą oba.
-- [ ] **6.4 Status na stronie podziękowania.** `GET /api/orders/by-session/{id}` + odpytywanie co 2 s. Gotowe, gdy: strona pokazuje numer PM-XXXX.
+- [x] **6.4 Status na stronie podziękowania.** `GET /api/orders/by-session/{id}` + odpytywanie co 2 s. Gotowe, gdy: strona pokazuje numer PM-XXXX.
 
 ## Faza 7 — Panel administracyjny
 
@@ -95,3 +95,5 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Przy dodaniu kodów rabatowych: `_mark_paid` porównuje `session.amount_total` z `total_grosze` zamówienia, więc płatność z rabatem zostanie zignorowana. Trzeba to dostosować razem z `_check_session_total`.
 - Do 7.2 (z przeglądu 6.3): zdarzenie płatności dla zamówienia `shipped` wysłałoby fałszywy alert „nie została przyjęta”. Stripe dziś tak nie robi, ale `_note_ignored_payment` powinno traktować `shipped` jak `paid`.
 - Do 8.3 (z 6.3): ustawić w `.env` na VM `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.
+- Do 9.1 (z przeglądu 6.4): limit żądań obejmuje też `GET /api/orders/by-session/{id}`; dziś chroni go tylko losowość `session_id` (endpoint zwraca wyłącznie numer i status).
+- Do 8.3 (z przeglądu 6.4): `session_id` jest w ścieżce `/api/orders/by-session/…`, więc trafia do logów dostępu Caddy i uvicorn. Daje dostęp tylko do numeru i statusu, ale logi trzymać krótko i nie udostępniać.

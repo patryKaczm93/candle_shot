@@ -1,7 +1,10 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.models import MAX_QTY_PER_ITEM
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models import MAX_QTY_PER_ITEM, Order
 
 
 @dataclass(frozen=True)
@@ -48,3 +51,8 @@ def calculate_totals(lines: Sequence[OrderLine], shipping_grosze: int) -> OrderT
         shipping_grosze=shipping,
         total_grosze=subtotal + shipping,
     )
+
+
+def get_order_by_session(db: Session, stripe_session_id: str) -> Order | None:
+    """Read-only lookup for the thank-you page; never changes the order."""
+    return db.scalar(select(Order).where(Order.stripe_session_id == stripe_session_id))

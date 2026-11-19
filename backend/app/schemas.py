@@ -3,7 +3,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
-from app.models import MAX_QTY_PER_ITEM
+from app.models import MAX_QTY_PER_ITEM, ORDER_STATUSES
 
 # Shown as „Dostępna”, „Ostatnia sztuka”, „Wyprzedana”. Exact stock never leaves the backend.
 Availability = Literal["available", "last", "sold_out"]
@@ -153,3 +153,15 @@ class CheckoutIn(BaseModel):
 
 class CheckoutOut(BaseModel):
     url: str
+
+
+# --- Orders ---------------------------------------------------------------------------------
+
+OrderStatus = Literal[ORDER_STATUSES]
+
+
+class OrderStatusOut(BaseModel):
+    """What the thank-you page may see. The session id is in its URL, so no personal data."""
+
+    number: str
+    status: OrderStatus
