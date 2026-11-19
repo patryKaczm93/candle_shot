@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     mail_from: str = ""
     shop_owner_email: str = ""
+    # /admin is mounted only when both are strong (see app.admin.admin_enabled).
+    admin_password: str = ""
+    admin_secret_key: str = ""
 
 
 settings = Settings()

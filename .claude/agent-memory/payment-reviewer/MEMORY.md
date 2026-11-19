@@ -2,3 +2,4 @@
 - [Wzorce błędów w ścieżce płatności](feedback_checkout_patterns.md) — osierocone sesje Stripe, rate limit, timeout, populate_existing, tautologiczne fake-i
 - [Wzorce formularza checkout](pattern_frontend_checkout.md) — podwójny submit, bfcache po powrocie ze Stripe, nieweryfikowany url przekierowania
 - [Post-commit side effects](pattern_post_commit_side_effects.md) — "never raises" claims leak outside try; wrap at call site, log fallback for alerts
+- [Admin panel patterns](pattern_admin_panel.md) — non-idempotent stock delta, shelf-vs-sellable wording, isdigit, regex $ newline

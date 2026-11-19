@@ -47,7 +47,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 
 ## Faza 7 — Panel administracyjny
 
-- [ ] **7.1 SQLAdmin za hasłem** pod `/admin`: produkty, warianty, stany, ustawienia. Gotowe, gdy: zmiana stanu w panelu jest od razu widoczna w sklepie.
+- [x] **7.1 SQLAdmin za hasłem** pod `/admin`: produkty, warianty, stany, ustawienia. Gotowe, gdy: zmiana stanu w panelu jest od razu widoczna w sklepie.
 - [ ] **7.2 Obsługa zamówień.** Lista opłaconych, oznaczenie „wysłane” z numerem przesyłki i e-mailem do klienta. Gotowe, gdy: wysłane zamówienie znika z listy „do spakowania”.
 
 ## Faza 8 — Wdrożenie
@@ -97,3 +97,6 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 8.3 (z 6.3): ustawić w `.env` na VM `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.
 - Do 9.1 (z przeglądu 6.4): limit żądań obejmuje też `GET /api/orders/by-session/{id}`; dziś chroni go tylko losowość `session_id` (endpoint zwraca wyłącznie numer i status).
 - Do 8.3 (z przeglądu 6.4): `session_id` jest w ścieżce `/api/orders/by-session/…`, więc trafia do logów dostępu Caddy i uvicorn. Daje dostęp tylko do numeru i statusu, ale logi trzymać krótko i nie udostępniać.
+- Do 8.1 (z 7.1): Caddy musi przekazywać `/admin*` do API (obok `/api/*`), inaczej SPA przechwyci panel. Panel i sklep pod tą samą domeną — ochrona CSRF panelu opiera się tylko na ciasteczku `SameSite=strict`.
+- Do 8.2/8.3 (z przeglądu 7.1): limit prób logowania na `/admin/login` (np. `rate_limit` w Caddy albo fail2ban na wpisach „Rejected admin login from <IP>”). Do tego czasu chroni tylko długie losowe hasło.
+- Panel (z przeglądu 7.1): wyloguj to GET (ktoś może wylogować admina linkiem), wylogowanie nie unieważnia skradzionego ciasteczka przed upływem 8 h (zmiana `ADMIN_SECRET_KEY` unieważnia wszystkie sesje); edycja wariantu pozwala przenieść go do innego produktu — rozważ blokadę pola przy edycji.

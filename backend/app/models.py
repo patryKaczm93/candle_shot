@@ -64,6 +64,10 @@ class Product(Base):
 
     variants: Mapped[list["Variant"]] = relationship(back_populates="product")
 
+    def __str__(self) -> str:
+        # Shown in the admin panel (lists and drop-downs).
+        return self.name
+
 
 class Variant(Base):
     """Plaster colour of a product; stock is tracked per colour."""
@@ -83,6 +87,9 @@ class Variant(Base):
     stock: Mapped[int] = mapped_column(server_default="0")
 
     product: Mapped[Product] = relationship(back_populates="variants")
+
+    def __str__(self) -> str:
+        return f"{self.product.name} — {self.name}"
 
 
 class Order(Base):

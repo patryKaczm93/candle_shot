@@ -37,7 +37,7 @@ class ShippingSettings:
         return self.locker_grosze if method == "locker" else self.courier_grosze
 
 
-def _parse_grosze(key: str, raw: str | None, *, minimum: int = 0) -> int:
+def parse_grosze(key: str, raw: str | None, *, minimum: int = 0) -> int:
     # ASCII digits only, bounded length: "12.99", "-5", "" or "١٤٠٠" fail loudly,
     # never become a float or a guess.
     if raw is None or not re.fullmatch(r"[0-9]{1,7}", raw.strip()):
@@ -52,10 +52,10 @@ def get_shipping_settings(db: Session) -> ShippingSettings:
     keys = (LOCKER_KEY, COURIER_KEY, FREE_THRESHOLD_KEY)
     rows = dict(db.execute(select(Setting.key, Setting.value).where(Setting.key.in_(keys))).all())
     return ShippingSettings(
-        locker_grosze=_parse_grosze(LOCKER_KEY, rows.get(LOCKER_KEY)),
-        courier_grosze=_parse_grosze(COURIER_KEY, rows.get(COURIER_KEY)),
+        locker_grosze=parse_grosze(LOCKER_KEY, rows.get(LOCKER_KEY)),
+        courier_grosze=parse_grosze(COURIER_KEY, rows.get(COURIER_KEY)),
         # A threshold of 0 would silently make every order ship free.
-        free_threshold_grosze=_parse_grosze(
+        free_threshold_grosze=parse_grosze(
             FREE_THRESHOLD_KEY, rows.get(FREE_THRESHOLD_KEY), minimum=1
         ),
     )
