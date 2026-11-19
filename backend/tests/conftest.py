@@ -6,14 +6,17 @@ from typing import Any
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, create_engine, make_url, text
 from sqlalchemy.orm import Session, sessionmaker
 
 import app.db
+from app.admin import setup_admin
 from app.config import settings
 from app.db import get_db
 from app.main import app as fastapi_app
+from app.routers import products
 from app.services.checkout import get_stripe_client
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -157,3 +160,17 @@ def committed_sessions(engine: Engine) -> Iterator[sessionmaker[Session]]:
                 " RESTART IDENTITY CASCADE"
             )
         )
+
+
+ADMIN_PASSWORD = "test-admin-password-123"
+ADMIN_SECRET_KEY = "k" * 40
+
+
+@pytest.fixture
+def admin_client(committed_sessions: sessionmaker[Session]) -> Iterator[TestClient]:
+    """App with the admin and the public catalogue, both on the real (committed) test database."""
+    test_app = FastAPI()
+    test_app.include_router(products.router, prefix="/api")
+    setup_admin(test_app, committed_sessions, ADMIN_PASSWORD, ADMIN_SECRET_KEY, https_only=False)
+    with TestClient(test_app) as client:
+        yield client

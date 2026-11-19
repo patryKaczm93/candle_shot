@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from sqlalchemy import select
@@ -59,6 +60,36 @@ def send_order_paid(session_id: str) -> None:
             _send(to, subject, build_text(order), reply_to)
         except Exception:
             logger.exception("E-mail not built: %s", subject)
+
+
+INPOST_TRACKING_URL = "https://inpost.pl/sledzenie-przesylek?number="
+
+
+def send_order_shipped(order_number: str) -> None:
+    """Tracking number for the customer after the seller marks the order shipped. Never raises."""
+    try:
+        with app.db.SessionLocal() as db:
+            order = db.scalars(select(Order).where(Order.number == order_number)).one()
+    except Exception:
+        logger.exception("Could not load the shipped order %s", order_number)
+        return
+    try:
+        text = _shipped_text(order)
+    except Exception:
+        logger.exception("E-mail not built: shipped %s", order_number)
+        return
+    delivered = _send(
+        order.email,
+        f"Twoja paczka wyruszyła — zamówienie {order.number}",
+        text,
+        settings.shop_owner_email,
+    )
+    if not delivered:
+        # The order is already shipped and cannot be saved again, so the seller must know.
+        send_seller_alert(
+            f"E-mail z numerem przesyłki do zamówienia {order.number} nie został wysłany. "
+            "Prześlij klientowi numer przesyłki ręcznie."
+        )
 
 
 def send_seller_alert(text: str) -> None:
@@ -180,5 +211,36 @@ def _seller_text(order: Order) -> str:
             f"Klient: {order.full_name}",
             f"E-mail: {order.email}",
             f"Telefon: {order.phone}",
+        ]
+    )
+
+
+def _shipped_text(order: Order) -> str:
+    tracking = str(order.tracking_number)
+    if order.shipping_method == "locker":
+        where = [
+            f"Paczka jedzie do Paczkomatu {order.locker_id}.",
+            f"Numer przesyłki: {tracking}",
+            f"Śledzenie: {INPOST_TRACKING_URL}{urllib.parse.quote(tracking)}",
+            "InPost wyśle SMS z kodem odbioru, gdy paczka dotrze.",
+        ]
+    else:
+        where = [
+            "Paczka jedzie kurierem na adres:",
+            str(order.address_line),
+            f"{order.address_postal_code} {order.address_city}",
+            f"Numer przesyłki: {tracking}",
+        ]
+    return "\n".join(
+        [
+            f"Dzień dobry, {order.full_name}!",
+            "",
+            f"Twoje zamówienie {order.number} zostało wysłane.",
+            "",
+            *where,
+            "",
+            "Masz pytanie? Po prostu odpowiedz na tę wiadomość.",
+            "",
+            "Pachnie miło",
         ]
     )

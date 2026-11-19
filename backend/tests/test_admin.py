@@ -1,5 +1,3 @@
-from collections.abc import Iterator
-
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -7,22 +5,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.admin import admin_enabled, format_zloty, parse_zloty, setup_admin
 from app.models import Product, Setting, Variant
-from app.routers import products
 from app.services.shipping import FREE_THRESHOLD_KEY, LOCKER_KEY
+from tests.conftest import ADMIN_PASSWORD as PASSWORD
+from tests.conftest import ADMIN_SECRET_KEY as SECRET_KEY
 from tests.factories import make_variant
-
-PASSWORD = "test-admin-password-123"
-SECRET_KEY = "k" * 40
-
-
-@pytest.fixture
-def admin_client(committed_sessions: sessionmaker[Session]) -> Iterator[TestClient]:
-    """App with the admin and the public catalogue, both on the real (committed) test database."""
-    test_app = FastAPI()
-    test_app.include_router(products.router, prefix="/api")
-    setup_admin(test_app, committed_sessions, PASSWORD, SECRET_KEY, https_only=False)
-    with TestClient(test_app) as client:
-        yield client
 
 
 def login(client: TestClient, password: str = PASSWORD, username: str = "admin") -> int:

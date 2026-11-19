@@ -506,3 +506,33 @@ def test_webhook_failure_during_cancel_saves_nothing_and_retry_succeeds(
     assert load_order(sessions).status == "cancelled"
     assert variant_stock(sessions, first_id) == 3
     assert variant_stock(sessions, second_id) == 3
+
+
+def test_webhook_payment_event_for_shipped_order_sends_no_alert(
+    webhook_client: TestClient, sessions: sessionmaker[Session], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    alerts: list[str] = []
+    monkeypatch.setattr(webhooks.emails, "send_seller_alert", alerts.append)
+    now = datetime.now(UTC)
+    create_order(sessions, status="shipped", paid_at=now, shipped_at=now)
+
+    response = post_signed(webhook_client, make_event(ASYNC_SUCCEEDED))
+
+    assert response.status_code == 200
+    assert load_order(sessions).status == "shipped"
+    assert alerts == []
+
+
+@pytest.mark.parametrize("event_type", [EXPIRED, ASYNC_FAILED])
+def test_webhook_closing_event_does_not_touch_shipped_order(
+    webhook_client: TestClient, sessions: sessionmaker[Session], event_type: str
+) -> None:
+    now = datetime.now(UTC)
+    first, second = create_reserved_order(sessions, status="shipped", paid_at=now, shipped_at=now)
+
+    response = post_signed(webhook_client, make_event(event_type, payment_status="unpaid"))
+
+    assert response.status_code == 200
+    assert load_order(sessions).status == "shipped"
+    assert variant_stock(sessions, first) == 1
+    assert variant_stock(sessions, second) == 0

@@ -97,8 +97,9 @@ def _note_ignored_payment(db: Session, session: stripe.checkout.Session) -> Send
             "ale w sklepie nie ma takiego zamówienia. Sprawdź ją w panelu Stripe "
             "i w razie potrzeby zwróć pieniądze.",
         )
-    if order.status == "paid":
-        logger.info("Order %s is already paid", order.number)
+    if order.status in ("paid", "shipped"):
+        # A repeated payment event for an order already paid (or already sent): nothing to do.
+        logger.info("Order %s is already %s", order.number, order.status)
         return None
 
     # Lets the seller find the payment and refund it by hand.

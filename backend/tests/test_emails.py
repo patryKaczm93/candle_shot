@@ -1,6 +1,7 @@
 import io
 import json
 import urllib.error
+from datetime import UTC, datetime
 from email.message import Message
 from typing import Any
 
@@ -431,3 +432,83 @@ def test_send_with_resend_error_without_json_returns_false(
     monkeypatch.setattr(emails.urllib.request, "urlopen", fake_urlopen)
 
     assert emails._send(CUSTOMER, "Temat", "Treść") is False
+
+
+# --- Shipped -----------------------------------------------------------------------------------
+
+
+def test_shipped_email_to_locker_has_tracking_link(
+    sessions: sessionmaker[Session], sent: list[dict[str, str]]
+) -> None:
+    with sessions.begin() as db:
+        now = datetime.now(UTC)
+        order = make_order(
+            db, status="shipped", tracking_number="6800 1234", paid_at=now, shipped_at=now
+        )
+        number = order.number
+
+    emails.send_order_shipped(number)
+
+    assert recipients(sent) == [CUSTOMER]
+    assert sent[0]["subject"] == f"Twoja paczka wyruszyła — zamówienie {number}"
+    assert sent[0]["reply_to"] == OWNER
+    text = sent[0]["text"]
+    assert "Paczkomatu WAW01M" in text
+    assert "Numer przesyłki: 6800 1234" in text
+    assert "https://inpost.pl/sledzenie-przesylek?number=6800%201234" in text
+
+
+def test_shipped_email_by_courier_has_address_and_no_inpost_link(
+    sessions: sessionmaker[Session], sent: list[dict[str, str]]
+) -> None:
+    with sessions.begin() as db:
+        order = make_order(
+            db,
+            status="shipped",
+            tracking_number="DPD123456",
+            shipping_method="courier",
+            locker_id=None,
+            address_line="Różana 5/2",
+            address_postal_code="00-001",
+            address_city="Warszawa",
+            paid_at=datetime.now(UTC),
+            shipped_at=datetime.now(UTC),
+        )
+        number = order.number
+
+    emails.send_order_shipped(number)
+
+    text = sent[0]["text"]
+    assert "Różana 5/2\n00-001 Warszawa" in text
+    assert "Numer przesyłki: DPD123456" in text
+    assert "inpost.pl" not in text
+
+
+def test_shipped_email_for_unknown_order_does_not_raise(sent: list[dict[str, str]]) -> None:
+    emails.send_order_shipped("PM-NOPE00")
+
+    assert sent == []
+
+
+def test_shipped_email_not_delivered_alerts_seller(
+    sessions: sessionmaker[Session], sent: list[dict[str, str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with sessions.begin() as db:
+        now = datetime.now(UTC)
+        number = make_order(
+            db, status="shipped", tracking_number="6800 1234", paid_at=now, shipped_at=now
+        ).number
+    real_post = emails._post_to_resend
+
+    def fail_for_customer(to: str, subject: str, text: str, reply_to: str) -> None:
+        if to == CUSTOMER:
+            raise OSError("Resend down")
+        real_post(to, subject, text, reply_to)
+
+    monkeypatch.setattr(emails, "_post_to_resend", fail_for_customer)
+
+    emails.send_order_shipped(number)
+
+    assert recipients(sent) == [OWNER]
+    assert number in sent[0]["text"]
+    assert "ręcznie" in sent[0]["text"]

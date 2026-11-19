@@ -7,19 +7,22 @@ import hmac
 import logging
 import re
 from typing import Any
+from zoneinfo import ZoneInfo
 
+import anyio
 from fastapi import FastAPI
 from markupsafe import Markup, escape
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
-from sqlalchemy import update
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import Select, func, select, update
+from sqlalchemy.orm import Session, selectinload, sessionmaker
 from starlette.requests import Request
 from wtforms import Field, Form, HiddenField, SelectField
-from wtforms.validators import InputRequired, NumberRange, Optional, Regexp
+from wtforms.validators import InputRequired, Length, NumberRange, Optional, Regexp
 from wtforms.widgets import TextInput
 
-from app.models import Product, Setting, Variant
+from app.models import Order, Product, Setting, Variant
+from app.services import emails
 from app.services.shipping import (
     COURIER_KEY,
     FREE_THRESHOLD_KEY,
@@ -413,6 +416,232 @@ class ShippingAdmin(ModelView, model=Setting):
         data["value"] = str(grosze)
 
 
+# --- Orders --------------------------------------------------------------------------------
+
+ORDER_STATUS_LABELS = {
+    "pending": "Czeka na płatność",
+    "paid": "Opłacone — do spakowania",
+    "shipped": "Wysłane",
+    "cancelled": "Anulowane",
+    "refunded": "Zwrócone",
+}
+# At least one letter or digit: "----" is not a tracking number.
+TRACKING_PATTERN = r"^(?=.*[A-Za-z0-9])[A-Za-z0-9 -]{4,100}\Z"
+SHOP_TIMEZONE = ZoneInfo("Europe/Warsaw")
+
+
+def _status_cell(order: Order, _: Any) -> str:
+    return ORDER_STATUS_LABELS.get(order.status, order.status)
+
+
+def _delivery_cell(order: Order, _: Any) -> str:
+    if order.shipping_method == "locker":
+        return f"Paczkomat {order.locker_id}"
+    return f"Kurier: {order.address_line}, {order.address_postal_code} {order.address_city}"
+
+
+def _items_cell(order: Order, _: Any) -> Markup:
+    lines = [
+        Markup("{} — {} × <strong>{}</strong>").format(
+            item.product_name, item.variant_name, item.qty
+        )
+        for item in order.items
+    ]
+    return Markup("<br>").join(lines)
+
+
+def _order_total_cell(order: Order, _: Any) -> str:
+    return f"{format_zloty(order.total_grosze)} zł"
+
+
+def _date_cell(attr: str) -> Any:
+    def cell(order: Order, _: Any) -> str:
+        value = getattr(order, attr)
+        return value.astimezone(SHOP_TIMEZONE).strftime("%d.%m.%Y %H:%M") if value else "—"
+
+    return cell
+
+
+def _invoice_cell(order: Order, _: Any) -> str:
+    if not order.invoice_nip:
+        return "—"
+    return f"{order.invoice_name}, NIP {order.invoice_nip}"
+
+
+ORDER_LABELS = {
+    Order.number: "Numer",
+    Order.status: "Status",
+    Order.created_at: "Złożone",
+    Order.paid_at: "Opłacone",
+    Order.shipped_at: "Wysłane",
+    Order.full_name: "Klient",
+    Order.email: "E-mail",
+    Order.phone: "Telefon",
+    Order.shipping_method: "Dostawa",
+    # sqladmin renders relationship columns as links, so the items hang on a plain column.
+    Order.subtotal_grosze: "Co spakować",
+    Order.total_grosze: "Razem",
+    Order.invoice_nip: "Faktura",
+    Order.tracking_number: "Numer przesyłki",
+}
+ORDER_DETAILS = [
+    Order.number,
+    Order.status,
+    Order.subtotal_grosze,
+    Order.shipping_method,
+    Order.full_name,
+    Order.phone,
+    Order.email,
+    Order.invoice_nip,
+    Order.total_grosze,
+    Order.created_at,
+    Order.paid_at,
+    Order.shipped_at,
+    Order.tracking_number,
+]
+ORDER_FORMATTERS = {
+    Order.status: _status_cell,
+    Order.shipping_method: _delivery_cell,
+    Order.subtotal_grosze: _items_cell,
+    Order.total_grosze: _order_total_cell,
+    Order.invoice_nip: _invoice_cell,
+    Order.created_at: _date_cell("created_at"),
+    Order.paid_at: _date_cell("paid_at"),
+    Order.shipped_at: _date_cell("shipped_at"),
+}
+
+
+class OrdersToPackAdmin(ModelView, model=Order):
+    """Paid orders, oldest first. Saving a tracking number marks the order shipped.
+
+    The change is a conditional UPDATE (status = 'paid'), so an order that is no longer paid,
+    or one already shipped by a double click, is never shipped twice nor e-mailed twice.
+    """
+
+    name = "Do spakowania"
+    name_plural = "Do spakowania"
+    icon = "fa-solid fa-box-open"
+    can_create = False
+    can_delete = False
+    can_export = False
+    column_list = [
+        Order.number,
+        Order.paid_at,
+        Order.full_name,
+        Order.shipping_method,
+        Order.subtotal_grosze,
+        Order.total_grosze,
+    ]
+    column_sortable_list: list[Any] = []
+    column_default_sort = [(Order.paid_at, False)]
+    column_labels = ORDER_LABELS
+    column_formatters = ORDER_FORMATTERS
+    column_details_list = ORDER_DETAILS
+    column_formatters_detail = ORDER_FORMATTERS
+    form_columns = [Order.tracking_number]
+    form_args = {
+        "tracking_number": {
+            "label": "Numer przesyłki",
+            "description": (
+                "Zapisanie oznacza zamówienie jako wysłane i wysyła klientowi e-mail "
+                "z numerem przesyłki. Tego nie da się cofnąć w panelu. Zwrot zrobiony "
+                "w panelu Stripe nie zmienia tu statusu, więc po zwrotach sprawdź najpierw "
+                "w Stripe, czy płatność za to zamówienie nie została zwrócona."
+            ),
+            "validators": [
+                InputRequired("Wpisz numer przesyłki z InPost albo od kuriera"),
+                Length(max=100),
+                Regexp(TRACKING_PATTERN, message="Tylko litery, cyfry, spacje i myślniki"),
+            ],
+        }
+    }
+
+    def list_query(self, request: Request) -> Select:
+        return (
+            select(Order)
+            .where(Order.status == "paid")
+            .options(selectinload(Order.items))
+            .order_by(Order.paid_at)
+        )
+
+    def details_query(self, request: Request) -> Select:
+        return (
+            super()
+            .details_query(request)
+            .where(Order.status == "paid")
+            .options(selectinload(Order.items))
+        )
+
+    def count_query(self, request: Request) -> Select:
+        return select(func.count(Order.id)).where(Order.status == "paid")
+
+    def form_edit_query(self, request: Request) -> Select:
+        # Only a paid order can be shipped; anything else gives 404 instead of a form.
+        return super().form_edit_query(request).where(Order.status == "paid")
+
+    async def on_model_change(
+        self, data: dict[str, Any], model: Any, is_created: bool, request: Request
+    ) -> None:
+        tracking = str(data.pop("tracking_number") or "").strip()
+        # The form validators see the raw value; "   " must not ship an order without a number.
+        if not re.fullmatch(TRACKING_PATTERN, tracking):
+            raise ValueError("Wpisz numer przesyłki: litery, cyfry, spacje i myślniki.")
+        with self.session_maker() as session:
+            result = session.execute(
+                update(Order)
+                .where(Order.id == model.id, Order.status == "paid")
+                .values(status="shipped", shipped_at=func.now(), tracking_number=tracking)
+            )
+            session.commit()
+        if result.rowcount != 1:
+            raise ValueError("To zamówienie nie czeka już na spakowanie. Odśwież listę.")
+        logger.warning("Admin marked order %s as shipped", model.number)
+        request.state.shipped_order_number = model.number
+
+    async def after_model_change(
+        self, data: dict[str, Any], model: Any, is_created: bool, request: Request
+    ) -> None:
+        number = getattr(request.state, "shipped_order_number", None)
+        if number:
+            # Outside the event loop: the mail provider may be slow.
+            await anyio.to_thread.run_sync(emails.send_order_shipped, number)
+
+
+class AllOrdersAdmin(ModelView, model=Order):
+    """Order history, read-only. Customers' personal data: no export, no edits."""
+
+    name = "Zamówienie"
+    name_plural = "Wszystkie zamówienia"
+    icon = "fa-solid fa-receipt"
+    can_create = False
+    can_edit = False
+    can_delete = False
+    can_export = False
+    page_size = 50
+    column_list = [
+        Order.number,
+        Order.created_at,
+        Order.status,
+        Order.full_name,
+        Order.total_grosze,
+    ]
+    column_searchable_list = [Order.number, Order.email]
+    column_sortable_list = [Order.created_at]
+    column_default_sort = [(Order.created_at, True)]
+    column_labels = ORDER_LABELS
+    column_formatters = ORDER_FORMATTERS
+    column_details_list = ORDER_DETAILS
+    column_formatters_detail = ORDER_FORMATTERS
+
+    def details_query(self, request: Request) -> Select:
+        return super().details_query(request).options(selectinload(Order.items))
+
+
+# Two views of one table need distinct URLs (/admin/do-spakowania/..., /admin/zamowienia/...).
+OrdersToPackAdmin.identity = "do-spakowania"
+AllOrdersAdmin.identity = "zamowienia"
+
+
 def setup_admin(
     app: FastAPI,
     session_maker: sessionmaker[Session],
@@ -431,7 +660,13 @@ def setup_admin(
         title="Pachnie miło — panel",
         authentication_backend=PasswordAuth(password, secret_key, https_only),
     )
-    views: list[Any] = [StockAdmin, ProductAdmin, ShippingAdmin]
+    views: list[Any] = [
+        OrdersToPackAdmin,
+        StockAdmin,
+        ProductAdmin,
+        ShippingAdmin,
+        AllOrdersAdmin,
+    ]
     for view in views:
         admin.add_view(view)
     return admin

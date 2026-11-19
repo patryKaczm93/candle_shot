@@ -48,7 +48,7 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 ## Faza 7 — Panel administracyjny
 
 - [x] **7.1 SQLAdmin za hasłem** pod `/admin`: produkty, warianty, stany, ustawienia. Gotowe, gdy: zmiana stanu w panelu jest od razu widoczna w sklepie.
-- [ ] **7.2 Obsługa zamówień.** Lista opłaconych, oznaczenie „wysłane” z numerem przesyłki i e-mailem do klienta. Gotowe, gdy: wysłane zamówienie znika z listy „do spakowania”.
+- [x] **7.2 Obsługa zamówień.** Lista opłaconych, oznaczenie „wysłane” z numerem przesyłki i e-mailem do klienta. Gotowe, gdy: wysłane zamówienie znika z listy „do spakowania”.
 
 ## Faza 8 — Wdrożenie
 
@@ -93,10 +93,11 @@ Jedna historyjka = jeden wieczór pracy. Realizacja: `/next-story` w Claude Code
 - Do 9.1 (z przeglądu 5.2): klucz idempotencji z przeglądarki w `POST /api/checkout` (np. UUID na próbę zamówienia), żeby ponowienie po zerwanym połączeniu nie tworzyło drugiego zamówienia i drugiej rezerwacji.
 - Do 6.2 (z 5.3): po „Anuluj” na stronie Stripe zamówienie `pending` trzyma rezerwację do wygaśnięcia sesji (31 min). Przy ostatniej sztuce klient, który wraca do zamówienia, blokuje sam siebie (409). Rozważ wygaszenie sesji (`sessions.expire`) przy wejściu na `/zamowienie/anulowane?session_id=…` — webhook `checkout.session.expired` odda wtedy stan od razu.
 - Przy dodaniu kodów rabatowych: `_mark_paid` porównuje `session.amount_total` z `total_grosze` zamówienia, więc płatność z rabatem zostanie zignorowana. Trzeba to dostosować razem z `_check_session_total`.
-- Do 7.2 (z przeglądu 6.3): zdarzenie płatności dla zamówienia `shipped` wysłałoby fałszywy alert „nie została przyjęta”. Stripe dziś tak nie robi, ale `_note_ignored_payment` powinno traktować `shipped` jak `paid`.
 - Do 8.3 (z 6.3): ustawić w `.env` na VM `RESEND_API_KEY`, `MAIL_FROM` i `SHOP_OWNER_EMAIL`, a w Resend zweryfikować domenę. Bez tego sklep działa, ale nie wysyła żadnych e-maili, także alertów o płatnościach.
 - Do 9.1 (z przeglądu 6.4): limit żądań obejmuje też `GET /api/orders/by-session/{id}`; dziś chroni go tylko losowość `session_id` (endpoint zwraca wyłącznie numer i status).
 - Do 8.3 (z przeglądu 6.4): `session_id` jest w ścieżce `/api/orders/by-session/…`, więc trafia do logów dostępu Caddy i uvicorn. Daje dostęp tylko do numeru i statusu, ale logi trzymać krótko i nie udostępniać.
 - Do 8.1 (z 7.1): Caddy musi przekazywać `/admin*` do API (obok `/api/*`), inaczej SPA przechwyci panel. Panel i sklep pod tą samą domeną — ochrona CSRF panelu opiera się tylko na ciasteczku `SameSite=strict`.
 - Do 8.2/8.3 (z przeglądu 7.1): limit prób logowania na `/admin/login` (np. `rate_limit` w Caddy albo fail2ban na wpisach „Rejected admin login from <IP>”). Do tego czasu chroni tylko długie losowe hasło.
 - Panel (z przeglądu 7.1): wyloguj to GET (ktoś może wylogować admina linkiem), wylogowanie nie unieważnia skradzionego ciasteczka przed upływem 8 h (zmiana `ADMIN_SECRET_KEY` unieważnia wszystkie sesje); edycja wariantu pozwala przenieść go do innego produktu — rozważ blokadę pola przy edycji.
+- Z 7.2: cofnięcie „wysłane” (pomyłka w numerze przesyłki) jest dziś możliwe tylko w bazie. Jeśli zdarzy się częściej — akcja „Popraw numer przesyłki” w panelu bez ponownego e-maila.
+- Do 9.2 (z przeglądu 7.2): zwrot zrobiony w panelu Stripe nie zmienia statusu zamówienia (brak obsługi `charge.refunded`), więc zwrócone zamówienie zostaje na liście „Do spakowania”. Do czasu obsługi — ostrzeżenie na formularzu wysyłki; docelowo webhook `charge.refunded` → `refunded` (zwrot stanu tylko dla niewysłanych).
